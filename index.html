@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbion Cost Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+        <h1 class="text-2xl font-bold mb-4 text-center">Orbion Cost Calculator</h1>
+        <form id="costForm" class="space-y-4">
+            <!-- Number of Users -->
+            <div>
+                <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
+                <input type="number" id="numUsers" min="0" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
+            <!-- Package Selection -->
+            <div>
+                <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
+                <select id="packageType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="access">Orbion Access</option>
+                    <option value="accessGov">Orbion Access and Governance</option>
+                </select>
+            </div>
+            <!-- Upgrade Checkbox -->
+            <div class="flex items-center">
+                <input type="checkbox" id="upgrade" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                <label for="upgrade" class="ml-2 text-sm text-gray-700">Include Upgrade (e.g., Advanced Analytics)</label>
+            </div>
+            <!-- Calculate Button -->
+            <button type="button" onclick="calculateCost()" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Calculate Cost</button>
+        </form>
+        <!-- Output Area -->
+        <div id="result" class="mt-4 p-4 bg-gray-50 rounded-md hidden">
+            <p id="packageText" class="text-lg font-semibold"></p>
+            <p id="usersText" class="text-gray-700"></p>
+            <p id="costText" class="text-gray-700"></p>
+        </div>
+    </div>
+
+    <script>
+        function calculateCost() {
+            // Get input values
+            const numUsers = parseInt(document.getElementById('numUsers').value);
+            const packageType = document.getElementById('packageType').value;
+            const isUpgrade = document.getElementById('upgrade').checked;
+
+            // Validate inputs
+            if (isNaN(numUsers) || numUsers < 0) {
+                alert('Please enter a valid number of users (non-negative).');
+                return;
+            }
+
+            // Pricing (hypothetical, replace with actual values)
+            let basePrice, upgradePrice = 0, packageName;
+            if (packageType === 'accessGov') {
+                basePrice = 15; // Orbion Access and Governance: $15/user/month
+                packageName = isUpgrade ? 'Orbion Access and Governance with Upgrade' : 'Orbion Access and Governance';
+                upgradePrice = isUpgrade ? 5 : 0; // $5/user/month for upgrade
+            } else {
+                basePrice = 10; // Orbion Access: $10/user/month
+                packageName = 'Orbion Access';
+                upgradePrice = 0; // No upgrade for basic Access
+            }
+
+            // Calculate total cost
+            const totalCost = numUsers * (basePrice + upgradePrice);
+
+            // Display result
+            const resultDiv = document.getElementById('result');
+            document.getElementById('packageText').textContent = `Package: ${packageName}`;
+            document.getElementById('usersText').textContent = `Users: ${numUsers}`;
+            document.getElementById('costText').textContent = `Total Cost: $${totalCost.toFixed(2)} per month`;
+            resultDiv.classList.remove('hidden');
+        }
+
+        // Replicate VBA configuration logic (update package based on inputs)
+        document.getElementById('numUsers').addEventListener('input', updatePackage);
+        document.getElementById('upgrade').addEventListener('change', updatePackage);
+
+        function updatePackage() {
+            const numUsers = parseInt(document.getElementById('numUsers').value);
+            const isUpgrade = document.getElementById('upgrade').checked;
+            const packageSelect = document.getElementById('packageType');
+
+            // Mimic VBA logic: Set package to Access and Governance if upgrade is selected or users > 0
+            if (isUpgrade || (numUsers > 0 && packageSelect.value !== 'accessGov')) {
+                packageSelect.value = 'accessGov';
+            } else if (!isUpgrade && numUsers === 0) {
+                packageSelect.value = 'access';
+            }
+        }
+    </script>
+</body>
+</html>
