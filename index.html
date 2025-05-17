@@ -8,21 +8,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <main class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md" aria-labelledby="title">
-      <h1 id="title" class="text-2xl font-bold mb-4 text-center">Orbion Cost Calculator</h1>
+    <main class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg" aria-labelledby="title">
+      <h1 id="title" class="text-2xl font-bold mb-6 text-center">Orbion Cost Calculator</h1>
 
       <!-- =================== FORM =================== -->
-      <form id="costForm" class="space-y-4" novalidate>
+      <form id="costForm" class="space-y-6" novalidate>
         <!-- Users -->
         <div>
           <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
           <input type="number" id="numUsers" name="numUsers" min="1" value="100" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-
-        <!-- Order (reserved for future) -->
-        <div>
-          <label for="order" class="block text-sm font-medium text-gray-700">Order (from Configuration)</label>
-          <input type="number" id="order" name="order" min="1" value="1" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
 
         <!-- Package -->
@@ -40,12 +34,24 @@
           <label for="upgrade" class="ml-2 text-sm text-gray-700">Include <span class="italic">Analytics Editor</span> option</label>
         </div>
 
-        <!-- Working‑Unit Service Requests -->
-        <div>
-          <label for="srUnits" class="block text-sm font-medium text-gray-700">Complementary Service Requests – Total W.U. ordered</label>
-          <input type="number" id="srUnits" name="srUnits" min="0" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <p class="text-xs text-gray-500 mt-1">Priced at <strong>€1 350.00</strong> per W.U. (catalog).</p>
-        </div>
+        <!-- ========== STANDARD SERVICE REQUESTS ========== -->
+        <fieldset id="standardSR" class="border-t pt-4 space-y-3">
+          <legend class="font-semibold text-sm text-gray-700 mb-1">Standard Service Requests</legend>
+          <p class="text-xs text-gray-500 mb-2">Each SR consumes <strong>2&nbsp;W.U.</strong>. Unit W.U. price: <strong>€1 350.00</strong>.</p>
+
+          <div class="flex items-center justify-between gap-3">
+            <label class="flex-1 text-sm">SSR‑0009 – non‑pre‑integrated SAML app</label>
+            <input type="number" min="0" value="0" data-sr-code="SSR-0009" class="w-24 p-1 border rounded-md text-right" />
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <label class="flex-1 text-sm">SSR‑0010 – external auth method study</label>
+            <input type="number" min="0" value="0" data-sr-code="SSR-0010" class="w-24 p-1 border rounded-md text-right" />
+          </div>
+          <div class="flex items-center justify-between gap-3">
+            <label class="flex-1 text-sm">SSR‑0017 – AD‑domain integration</label>
+            <input type="number" min="0" value="0" data-sr-code="SSR-0017" class="w-24 p-1 border rounded-md text-right" />
+          </div>
+        </fieldset>
 
         <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
           Generate Proposal
@@ -53,9 +59,9 @@
       </form>
 
       <!-- =================== OUTPUT =================== -->
-      <section id="result" class="mt-6 p-4 bg-gray-50 rounded-md hidden">
-        <h2 class="text-lg font-semibold mb-2">Proposal for Orbion Subscription</h2>
-        <hr class="mb-2" />
+      <section id="result" class="mt-8 p-4 bg-gray-50 rounded-md hidden">
+        <h2 class="text-lg font-semibold mb-3">Proposal for Orbion Subscription</h2>
+        <hr class="mb-4" />
         <p id="packageText" class="text-gray-700"></p>
         <p id="usersText" class="text-gray-700"></p>
 
@@ -81,9 +87,15 @@
         access: { base: 6.0, analytics: 0.6 },
         accessGov: { base: 25.263, analytics: 1.775 },
         srWU: 1350.0,
+        srTable: {
+          "SSR-0009": { wu: 2, label: "SSR‑0009" },
+          "SSR-0010": { wu: 2, label: "SSR‑0010" },
+          "SSR-0017": { wu: 2, label: "SSR‑0017" },
+        },
+        starterPack: { wu: 35, sku: "PACK-0001", label: "Starter pack" },
       };
 
-      // ===== FEATURES (for UI) =====
+      // ===== FEATURES =====
       const FEATURES = {
         access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
         accessGov: [
@@ -103,38 +115,65 @@
         minimumFractionDigits: 2,
       }).format;
 
+      // ===== HELPERS =====
+      function collectSRQuantities() {
+        const obj = {};
+        document.querySelectorAll("[data-sr-code]").forEach((el) => {
+          obj[el.dataset.srCode] = parseInt(el.value, 10) || 0;
+        });
+        return obj;
+      }
+
+      function totalWU(pkg, qtyBySR) {
+        let wu = 0;
+        for (const [code, qty] of Object.entries(qtyBySR)) {
+          wu += qty * PRICE.srTable[code].wu;
+        }
+        if (pkg === "accessGov") wu += PRICE.starterPack.wu; // mandatory
+        return wu;
+      }
+
       // ===== CALC ENGINE =====
-      function calculate(users, pkg, hasUpgrade, srUnits) {
+      function calculate(users, pkg, hasUpgrade, qtyBySR) {
         const unitBase = PRICE[pkg].base;
         const unitAnalytics = hasUpgrade ? PRICE[pkg].analytics : 0;
 
         const baseCost = users * unitBase;
         const upgradeCost = users * unitAnalytics;
-        const srCost = srUnits * PRICE.srWU;
+
+        const wuCount = totalWU(pkg, qtyBySR);
+        const srCost = wuCount * PRICE.srWU;
 
         const monthly = baseCost + upgradeCost;
         const yearly = monthly * 12 + srCost;
 
-        return { baseCost, upgradeCost, srCost, monthly, yearly };
+        return { baseCost, upgradeCost, srCost, monthly, yearly, wuCount };
       }
 
       // ===== RENDERER =====
-      function render(users, pkg, hasUpgrade, srUnits, costs) {
-        $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${
-          hasUpgrade ? " + Analytics Editor" : ""
-        }`;
+      function render(users, pkg, hasUpgrade, qtyBySR, costs) {
+        $("packageText").textContent = `Selected Package: ${
+          pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"
+        }${hasUpgrade ? " + Analytics Editor" : ""}`;
         $("usersText").textContent = `Number of Users: ${users}`;
 
         const breakdown = [];
-        breakdown.push(`${formatEUR(PRICE[pkg].base)}/user/mo × ${users} users = ${formatEUR(costs.baseCost)}`);
+        breakdown.push(
+          `${formatEUR(PRICE[pkg].base)}/user/mo × ${users} users = ${formatEUR(costs.baseCost)}`
+        );
         if (hasUpgrade)
-          breakdown.push(`${formatEUR(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${formatEUR(costs.upgradeCost)}`);
-        if (srUnits > 0) breakdown.push(`${formatEUR(PRICE.srWU)} per W.U. × ${srUnits} W.U. = ${formatEUR(costs.srCost)} (one‑off)`);
+          breakdown.push(
+            `${formatEUR(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${formatEUR(costs.upgradeCost)}`
+          );
+
+        if (costs.wuCount > 0)
+          breakdown.push(`${costs.wuCount} W.U. × ${formatEUR(PRICE.srWU)} = ${formatEUR(costs.srCost)} (one‑off)`);
+
         $("breakdownText").innerHTML = breakdown.map((b) => `<li>${b}</li>`).join("");
 
         $("costText").innerHTML = `<strong>Total Cost:</strong> ${formatEUR(costs.monthly)} / month &nbsp;|&nbsp; ${formatEUR(costs.yearly)} for first year`;
 
-        const features = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.analytics : []), ...(srUnits > 0 ? FEATURES.srPack : [])];
+        const features = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.analytics : []), ...(costs.wuCount > 0 ? FEATURES.srPack : [])];
         $("featuresText").innerHTML = features.map((f) => `<li>${f}</li>`).join("");
 
         const notes = [
@@ -154,19 +193,15 @@
         const users = parseInt($("numUsers").value, 10) || 0;
         const pkg = $("packageType").value;
         const hasUpgrade = $("upgrade").checked;
-        const srUnits = parseInt($("srUnits").value, 10) || 0;
+        const qtyBySR = collectSRQuantities()
 
         if (users <= 0) {
           alert("Enter a valid number of users (≥1).");
           return;
         }
-        if (srUnits < 0) {
-          alert("W.U. cannot be negative.");
-          return;
-        }
 
-        const costs = calculate(users, pkg, hasUpgrade, srUnits);
-        render(users, pkg, hasUpgrade, srUnits, costs);
+        const costs = calculate(users, pkg, hasUpgrade, qtyBySR);
+        render(users, pkg, hasUpgrade, qtyBySR, costs);
       });
     </script>
   </body>
