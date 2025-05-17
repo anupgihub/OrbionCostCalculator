@@ -68,7 +68,11 @@
         <p class="font-semibold mt-4">Pricing Breakdown:</p>
         <ul id="breakdownText" class="list-disc list-inside text-gray-700"></ul>
 
-        <p id="costText" class="text-gray-700 font-semibold mt-4"></p>
+        <div class="mt-4 space-y-1 text-gray-800">
+          <p id="subYearly" class="font-medium"></p>
+          <p id="srOneOff" class="font-medium"></p>
+          <p id="totalYearly" class="font-bold"></p>
+        </div>
 
         <p class="font-semibold mt-4">Package Features:</p>
         <ul id="featuresText" class="list-disc list-inside text-gray-700"></ul>
@@ -145,9 +149,10 @@
         const srCost = wuCount * PRICE.srWU;
 
         const monthly = baseCost + upgradeCost;
-        const yearly = monthly * 12 + srCost;
+        const subscriptionYearly = monthly * 12;
+        const totalYearly = subscriptionYearly + srCost;
 
-        return { baseCost, upgradeCost, srCost, monthly, yearly, wuCount };
+        return { baseCost, upgradeCost, srCost, monthly, subscriptionYearly, totalYearly, wuCount };
       }
 
       // ===== RENDERER =====
@@ -171,7 +176,10 @@
 
         $("breakdownText").innerHTML = breakdown.map((b) => `<li>${b}</li>`).join("");
 
-        $("costText").innerHTML = `<strong>Total Cost:</strong> ${formatEUR(costs.monthly)} / month &nbsp;|&nbsp; ${formatEUR(costs.yearly)} for first year`;
+        // Split display
+        $("subYearly").textContent = `Yearly subscription (12 × monthly): ${formatEUR(costs.subscriptionYearly)}`;
+        $("srOneOff").textContent = `Complementary services (WU): ${formatEUR(costs.srCost)}`;
+        $("totalYearly").textContent = `TOTAL first‑year spend: ${formatEUR(costs.totalYearly)}`;
 
         const features = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.analytics : []), ...(costs.wuCount > 0 ? FEATURES.srPack : [])];
         $("featuresText").innerHTML = features.map((f) => `<li>${f}</li>`).join("");
@@ -182,27 +190,4 @@
           "Complementary service‑request packs invoiced upon delivery.",
           "Standard business‑hours support included.",
         ];
-        $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
-
-        $("result").classList.remove("hidden");
-      }
-
-      // ===== EVENT LISTENER =====
-      $("costForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const users = parseInt($("numUsers").value, 10) || 0;
-        const pkg = $("packageType").value;
-        const hasUpgrade = $("upgrade").checked;
-        const qtyBySR = collectSRQuantities()
-
-        if (users <= 0) {
-          alert("Enter a valid number of users (≥1).");
-          return;
-        }
-
-        const costs = calculate(users, pkg, hasUpgrade, qtyBySR);
-        render(users, pkg, hasUpgrade, qtyBySR, costs);
-      });
-    </script>
-  </body>
-</html>
+        $("
