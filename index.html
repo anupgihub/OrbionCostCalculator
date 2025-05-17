@@ -11,54 +11,60 @@
     <main class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg" aria-labelledby="title">
       <h1 id="title" class="text-2xl font-bold mb-6 text-center">Orbion Cost Calculator</h1>
 
-      <!-- =================== FORM =================== -->
+      <!-- ================= FORM ================= -->
       <form id="costForm" class="space-y-6" novalidate>
         <!-- Users -->
         <div>
           <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
-          <input type="number" id="numUsers" name="numUsers" min="1" value="100" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <input type="number" id="numUsers" name="numUsers" min="1" value="100" required
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
 
         <!-- Package -->
         <div>
           <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
-          <select id="packageType" name="packageType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <select id="packageType" name="packageType"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="access">Orbion Access</option>
             <option value="accessGov" selected>Orbion Access &amp; Governance</option>
           </select>
         </div>
 
-        <!-- Analytics -->
+        <!-- Analytics option -->
         <div class="flex items-center">
-          <input type="checkbox" id="upgrade" name="upgrade" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+          <input type="checkbox" id="upgrade" name="upgrade"
+            class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
           <label for="upgrade" class="ml-2 text-sm text-gray-700">Include <span class="italic">Analytics Editor</span> option</label>
         </div>
 
-        <!-- ========== STANDARD SERVICE REQUESTS ========== -->
+        <!-- ===== STANDARD SRs ===== -->
         <fieldset id="standardSR" class="border-t pt-4 space-y-3">
           <legend class="font-semibold text-sm text-gray-700 mb-1">Standard Service Requests</legend>
           <p class="text-xs text-gray-500 mb-2">Each SR consumes <strong>2&nbsp;W.U.</strong>. Unit W.U. price: <strong>€1 350.00</strong>.</p>
 
           <div class="flex items-center justify-between gap-3">
             <label class="flex-1 text-sm">SSR‑0009 – non‑pre‑integrated SAML app</label>
-            <input type="number" min="0" value="0" data-sr-code="SSR-0009" class="w-24 p-1 border rounded-md text-right" />
+            <input type="number" min="0" value="0" data-sr-code="SSR-0009"
+              class="w-24 p-1 border rounded-md text-right" />
           </div>
           <div class="flex items-center justify-between gap-3">
-            <label class="flex-1 text-sm">SSR‑0010 – external auth method study</label>
-            <input type="number" min="0" value="0" data-sr-code="SSR-0010" class="w-24 p-1 border rounded-md text-right" />
+            <label class="flex-1 text-sm">SSR‑0010 – external auth method study</label>
+            <input type="number" min="0" value="0" data-sr-code="SSR-0010"
+              class="w-24 p-1 border rounded-md text-right" />
           </div>
           <div class="flex items-center justify-between gap-3">
             <label class="flex-1 text-sm">SSR‑0017 – AD‑domain integration</label>
-            <input type="number" min="0" value="0" data-sr-code="SSR-0017" class="w-24 p-1 border rounded-md text-right" />
+            <input type="number" min="0" value="0" data-sr-code="SSR-0017"
+              class="w-24 p-1 border rounded-md text-right" />
           </div>
         </fieldset>
 
-        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
-          Generate Proposal
-        </button>
+        <button type="submit"
+          class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate
+          Proposal</button>
       </form>
 
-      <!-- =================== OUTPUT =================== -->
+      <!-- ================= OUTPUT ================= -->
       <section id="result" class="mt-8 p-4 bg-gray-50 rounded-md hidden">
         <h2 class="text-lg font-semibold mb-3">Proposal for Orbion Subscription</h2>
         <hr class="mb-4" />
@@ -82,11 +88,12 @@
       </section>
     </main>
 
-    <!-- =================== SCRIPT =================== -->
+    <!-- ================= SCRIPT ================= -->
     <script>
+      // === DOM helper ===
       const $ = (id) => document.getElementById(id);
 
-      // ===== PRICE CATALOG (EUR) =====
+      // === PRICE CATALOG (EUR) ===
       const PRICE = {
         access: { base: 6.0, analytics: 0.6 },
         accessGov: { base: 25.263, analytics: 1.775 },
@@ -99,7 +106,7 @@
         starterPack: { wu: 35, sku: "PACK-0001", label: "Starter pack" },
       };
 
-      // ===== FEATURES =====
+      // === FEATURES TABLE ===
       const FEATURES = {
         access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
         accessGov: [
@@ -112,82 +119,95 @@
         srPack: ["Complementary service request pack (WU)"],
       };
 
-      // ===== FORMATTER =====
-      const formatEUR = new Intl.NumberFormat("en-US", {
+      // === CURRENCY FORMATTER ===
+      const fmt = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "EUR",
         minimumFractionDigits: 2,
       }).format;
 
-      // ===== HELPERS =====
-      function collectSRQuantities() {
+      // === Collect SR quantities ===
+      const collectSR = () => {
         const obj = {};
         document.querySelectorAll("[data-sr-code]").forEach((el) => {
           obj[el.dataset.srCode] = parseInt(el.value, 10) || 0;
         });
         return obj;
-      }
+      };
 
-      function totalWU(pkg, qtyBySR) {
-        let wu = 0;
-        for (const [code, qty] of Object.entries(qtyBySR)) {
-          wu += qty * PRICE.srTable[code].wu;
-        }
-        if (pkg === "accessGov") wu += PRICE.starterPack.wu; // mandatory
+      // === Total WU ===
+      const totalWU = (pkg, srQty) => {
+        let wu = Object.entries(srQty).reduce((sum, [code, qty]) => sum + qty * PRICE.srTable[code].wu, 0);
+        if (pkg === "accessGov") wu += PRICE.starterPack.wu;
         return wu;
-      }
+      };
 
-      // ===== CALC ENGINE =====
-      function calculate(users, pkg, hasUpgrade, qtyBySR) {
+      // === Main calc ===
+      function calculate(users, pkg, upgrade, srQty) {
         const unitBase = PRICE[pkg].base;
-        const unitAnalytics = hasUpgrade ? PRICE[pkg].analytics : 0;
+        const unitUpg = upgrade ? PRICE[pkg].analytics : 0;
 
         const baseCost = users * unitBase;
-        const upgradeCost = users * unitAnalytics;
+        const upgCost = users * unitUpg;
 
-        const wuCount = totalWU(pkg, qtyBySR);
-        const srCost = wuCount * PRICE.srWU;
+        const wuCnt = totalWU(pkg, srQty);
+        const srCost = wuCnt * PRICE.srWU;
 
-        const monthly = baseCost + upgradeCost;
-        const subscriptionYearly = monthly * 12;
-        const totalYearly = subscriptionYearly + srCost;
+        const monthly = baseCost + upgCost;
+        const yearlySub = monthly * 12;
+        const yearlyTotal = yearlySub + srCost;
 
-        return { baseCost, upgradeCost, srCost, monthly, subscriptionYearly, totalYearly, wuCount };
+        return { baseCost, upgCost, srCost, monthly, yearlySub, yearlyTotal, wuCnt };
       }
 
-      // ===== RENDERER =====
-      function render(users, pkg, hasUpgrade, qtyBySR, costs) {
-        $("packageText").textContent = `Selected Package: ${
-          pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"
-        }${hasUpgrade ? " + Analytics Editor" : ""}`;
+      // === Render ===
+      function render(users, pkg, upgrade, srQty, c) {
+        $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${upgrade ? " + Analytics Editor" : ""}`;
         $("usersText").textContent = `Number of Users: ${users}`;
 
-        const breakdown = [];
-        breakdown.push(
-          `${formatEUR(PRICE[pkg].base)}/user/mo × ${users} users = ${formatEUR(costs.baseCost)}`
-        );
-        if (hasUpgrade)
-          breakdown.push(
-            `${formatEUR(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${formatEUR(costs.upgradeCost)}`
-          );
+        // breakdown list
+        const list = [];
+        list.push(`${fmt(PRICE[pkg].base)}/user/mo × ${users} users = ${fmt(c.baseCost)}`);
+        if (upgrade) list.push(`${fmt(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${fmt(c.upgCost)}`);
+        if (c.wuCnt > 0) list.push(`${c.wuCnt} W.U. × ${fmt(PRICE.srWU)} = ${fmt(c.srCost)} (one‑off)`);
+        $("breakdownText").innerHTML = list.map((x) => `<li>${x}</li>`).join("");
 
-        if (costs.wuCount > 0)
-          breakdown.push(`${costs.wuCount} W.U. × ${formatEUR(PRICE.srWU)} = ${formatEUR(costs.srCost)} (one‑off)`);
+        $("subYearly").textContent = `Year‑1 subscription (12 × monthly): ${fmt(c.yearlySub)}`;
+        $("srOneOff").textContent = `Complementary services (WU): ${fmt(c.srCost)}`;
+        $("totalYearly").textContent = `TOTAL first‑year spend: ${fmt(c.yearlyTotal)}`;
 
-        $("breakdownText").innerHTML = breakdown.map((b) => `<li>${b}</li>`).join("");
+        // features
+        const feats = [
+          ...FEATURES[pkg],
+          ...(upgrade ? FEATURES.analytics : []),
+          ...(c.wuCnt > 0 ? FEATURES.srPack : []),
+        ];
+        $("featuresText").innerHTML = feats.map((f) => `<li>${f}</li>`).join("");
 
-        // Split display
-        $("subYearly").textContent = `Yearly subscription (12 × monthly): ${formatEUR(costs.subscriptionYearly)}`;
-        $("srOneOff").textContent = `Complementary services (WU): ${formatEUR(costs.srCost)}`;
-        $("totalYearly").textContent = `TOTAL first‑year spend: ${formatEUR(costs.totalYearly)}`;
-
-        const features = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.analytics : []), ...(costs.wuCount > 0 ? FEATURES.srPack : [])];
-        $("featuresText").innerHTML = features.map((f) => `<li>${f}</li>`).join("");
-
-        const notes = [
+        // notes
+        $("notesText").innerHTML = [
           "All prices shown are in EUR, excluding taxes.",
           "Subscription billed monthly, in advance.",
           "Complementary service‑request packs invoiced upon delivery.",
           "Standard business‑hours support included.",
-        ];
-        $("
+        ].map((n) => `<li>${n}</li>`).join("");
+
+        $("result").classList.remove("hidden");
+      }
+
+      // === Form submit ===
+      $("costForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const users = parseInt($("numUsers").value, 10) || 0;
+        if (users < 1) return alert("Number of users must be at least 1");
+
+        const pkg = $("packageType").value;
+        const upgrade = $("upgrade").checked;
+        const srQty = collectSR();
+
+        const costs = calculate(users, pkg, upgrade, srQty);
+        render(users, pkg, upgrade, srQty, costs);
+      });
+    </script>
+  </body>
+</html>
