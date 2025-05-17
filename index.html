@@ -30,7 +30,7 @@
             id="numUsers"
             name="numUsers"
             min="1"
-            value="1"
+            value="100"
             required
             class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
@@ -84,6 +84,26 @@
           >
         </div>
 
+        <!-- Working‑Unit Service Requests -->
+        <div>
+          <label
+            for="srUnits"
+            class="block text-sm font-medium text-gray-700"
+            >Complementary Service Requests – Total W.U. ordered</label
+          >
+          <input
+            type="number"
+            id="srUnits"
+            name="srUnits"
+            min="0"
+            value="0"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p class="text-xs text-gray-500 mt-1">
+            Standard pack price: <strong>€1 350.00 per W.U.</strong> (catalog).
+          </p>
+        </div>
+
         <!-- Submit -->
         <button
           type="submit"
@@ -124,39 +144,46 @@
 
       // =============================
       //  PRICE CATALOG  (EUR, excl. tax)
-      // — figures mirror January‑2025 Evidian SaaS catalog
+      //  Mirrors January‑2025 Evidian SaaS catalog
       // =============================
       const PRICE = {
-        access: 6.0, // €/user/month – SKU ASDS01‑0000
-        accessGov: 6.0, // €/user/month – governance functions bundled, same catalog price
-        upgrade: 0.6, // €/user/month – Analytics Editor option (SKU ASANA01‑0000)
+        // Base subscriptions (€/user/month)
+        access: { base: 6.0, analytics: 0.6 },
+        accessGov: { base: 25.26, analytics: 1.78 },
+        // Complementary services – Working‑Unit (€/WU)
+        srWU: 1350.0, // SKU WUSSRO0‑0010 starter pack
       };
 
       // =============================
       //  FEATURE SETS  (for display only)
       // =============================
       const FEATURES = {
-        access: [
-          "Single Sign‑On (SSO)",
-          "Multi‑Factor Authentication (MFA)",
-        ],
+        access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
         accessGov: [
           "Single Sign‑On (SSO)",
           "Multi‑Factor Authentication (MFA)",
           "Identity Governance & Administration (IGA)",
           "Privileged Access Management (PAM)",
         ],
-        upgrade: ["Analytics Editor option"],
+        analytics: ["Analytics Editor option"],
+        srPack: ["Complementary service request pack (WU)"]
       };
 
       // =============================
       //  Calculation engine
       // =============================
-      function calculate({ users, pkg, hasUpgrade }) {
-        const baseCost = users * PRICE[pkg];
-        const upgradeCost = hasUpgrade ? users * PRICE.upgrade : 0;
-        const total = baseCost + upgradeCost;
-        return { baseCost, upgradeCost, total };
+      function calculate({ users, pkg, hasUpgrade, srUnits }) {
+        const unitBase = PRICE[pkg].base;
+        const unitAnalytics = hasUpgrade ? PRICE[pkg].analytics : 0;
+
+        const baseCost = users * unitBase;
+        const upgradeCost = users * unitAnalytics;
+        const srCost = srUnits * PRICE.srWU; // one‑off cost (not per user)
+
+        const totalMonthly = baseCost + upgradeCost;
+        const totalYearly = totalMonthly * 12 + srCost; // workbook summarises yearly + SR
+
+        return { baseCost, upgradeCost, srCost, totalMonthly, totalYearly };
       }
 
       // Currency helper – centralises formatting
@@ -170,7 +197,7 @@
       // =============================
       //  UI renderer
       // =============================
-      function render({ users, pkg, hasUpgrade, costs }) {
+      function render({ users, pkg, hasUpgrade, srUnits, costs }) {
         // Selected package
         $("packageText").textContent = `Selected Package: ${
           pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"
@@ -179,35 +206,50 @@
         $("usersText").textContent = `Number of Users: ${users}`;
 
         // Pricing breakdown list
-        const breakdown = [
-          `${currency(PRICE[pkg])}/user/mo × ${users} users = ${currency(
+        const breakdown = [];
+        breakdown.push(
+          `${currency(PRICE[pkg].base)}/user/mo × ${users} users = ${currency(
             costs.baseCost
-          )}`,
-        ];
+          )}`
+        );
         if (hasUpgrade) {
           breakdown.push(
-            `${currency(PRICE.upgrade)}/user/mo upgrade × ${users} users = ${currency(
+            `${currency(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${currency(
               costs.upgradeCost
             )}`
+          );
+        }
+        if (srUnits > 0) {
+          breakdown.push(
+            `${currency(PRICE.srWU)} per W.U. × ${srUnits} W.U. = ${currency(
+              costs.srCost
+            )} (one‑off)`
           );
         }
         $("breakdownText").innerHTML = breakdown
           .map((li) => `<li>${li}</li>`) // safe simple HTML
           .join("");
 
-        // Total line
-        $("costText").textContent = `Total Cost: ${currency(costs.total)} / month`;
+        // Totals
+        $("costText").innerHTML = `<strong>Total Cost:</strong> ${currency(
+          costs.totalMonthly
+        )} / month &nbsp;|&nbsp; ${currency(costs.totalYearly)} for first year`;
 
         // Feature list
-        const featureSet = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.upgrade : [])];
+        const featureSet = [
+          ...FEATURES[pkg],
+          ...(hasUpgrade ? FEATURES.analytics : []),
+          ...(srUnits > 0 ? FEATURES.srPack : []),
+        ];
         $("featuresText").innerHTML = featureSet
           .map((f) => `<li>${f}</li>`) // list items
           .join("");
 
-        // Notes (static for now)
+        // Notes
         const notes = [
           "All prices shown are in EUR, excluding taxes.",
           "Subscription billed monthly, in advance.",
+          "Complementary service‑request packs invoiced upon delivery.",
           "Standard business‑hours support included.",
         ];
         $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
@@ -217,32 +259,10 @@
       }
 
       // =============================
-      //  VBA‑like auto‑package finder (simplified)
-      // =============================
-      function autoSelectPackage() {
-        const users = +$("numUsers").value || 0;
-        const orderVal = +$("order").value || 0;
-        const hasUpgrade = $("upgrade").checked;
-        const pkgSelect = $("packageType");
-
-        // Rule: if upgrade selected OR (order ≠ 2 && users > 0) => Access & Gov
-        if (hasUpgrade || (orderVal !== 2 && users > 0)) {
-          pkgSelect.value = "accessGov";
-        } else {
-          pkgSelect.value = "access";
-        }
-      }
-
-      // =============================
       //  Event wiring
       // =============================
       document.addEventListener("DOMContentLoaded", () => {
         const form = $("costForm");
-
-        // Live auto‑package evaluation
-        ["numUsers", "order", "upgrade"].forEach((id) =>
-          $(id).addEventListener("input", autoSelectPackage)
-        );
 
         // Calculate on submit
         form.addEventListener("submit", (e) => {
@@ -252,6 +272,7 @@
           const orderVal = +$("order").value; // placeholder – future discount logic
           const pkg = $("packageType").value;
           const hasUpgrade = $("upgrade").checked;
+          const srUnits = +$("srUnits").value || 0;
 
           // Minimal validation
           if (!users || users < 1) {
@@ -262,9 +283,13 @@
             alert("Please enter a valid order number.");
             return;
           }
+          if (srUnits < 0) {
+            alert("Working‑unit count cannot be negative.");
+            return;
+          }
 
-          const costs = calculate({ users, pkg, hasUpgrade });
-          render({ users, pkg, hasUpgrade, costs });
+          const costs = calculate({ users, pkg, hasUpgrade, srUnits });
+          render({ users, pkg, hasUpgrade, srUnits, costs });
         });
       });
     </script>
