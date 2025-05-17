@@ -8,116 +8,53 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <main
-      class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
-      aria-labelledby="title"
-    >
-      <h1 id="title" class="text-2xl font-bold mb-4 text-center">
-        Orbion Cost Calculator
-      </h1>
+    <main class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md" aria-labelledby="title">
+      <h1 id="title" class="text-2xl font-bold mb-4 text-center">Orbion Cost Calculator</h1>
 
-      <!-- =====  FORM  ===== -->
+      <!-- =================== FORM =================== -->
       <form id="costForm" class="space-y-4" novalidate>
-        <!-- Number of Users -->
+        <!-- Users -->
         <div>
-          <label
-            for="numUsers"
-            class="block text-sm font-medium text-gray-700"
-            >Number of Users</label
-          >
-          <input
-            type="number"
-            id="numUsers"
-            name="numUsers"
-            min="1"
-            value="100"
-            required
-            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
+          <input type="number" id="numUsers" name="numUsers" min="1" value="100" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
 
-        <!-- Order Value (kept for future use / discount ladders) -->
+        <!-- Order (reserved for future) -->
         <div>
-          <label
-            for="order"
-            class="block text-sm font-medium text-gray-700"
-            >Order (from Configuration)</label
-          >
-          <input
-            type="number"
-            id="order"
-            name="order"
-            min="1"
-            value="1"
-            required
-            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <label for="order" class="block text-sm font-medium text-gray-700">Order (from Configuration)</label>
+          <input type="number" id="order" name="order" min="1" value="1" required class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
 
-        <!-- Package Selection -->
+        <!-- Package -->
         <div>
-          <label
-            for="packageType"
-            class="block text-sm font-medium text-gray-700"
-            >Package</label
-          >
-          <select
-            id="packageType"
-            name="packageType"
-            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
+          <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
+          <select id="packageType" name="packageType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="access">Orbion Access</option>
-            <option value="accessGov">Orbion Access &amp; Governance</option>
+            <option value="accessGov" selected>Orbion Access &amp; Governance</option>
           </select>
         </div>
 
-        <!-- Analytics upgrade Checkbox -->
+        <!-- Analytics -->
         <div class="flex items-center">
-          <input
-            type="checkbox"
-            id="upgrade"
-            name="upgrade"
-            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label for="upgrade" class="ml-2 text-sm text-gray-700"
-            >Include <span class="italic">Analytics Editor</span> option</label
-          >
+          <input type="checkbox" id="upgrade" name="upgrade" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+          <label for="upgrade" class="ml-2 text-sm text-gray-700">Include <span class="italic">Analytics Editor</span> option</label>
         </div>
 
         <!-- Working‑Unit Service Requests -->
         <div>
-          <label
-            for="srUnits"
-            class="block text-sm font-medium text-gray-700"
-            >Complementary Service Requests – Total W.U. ordered</label
-          >
-          <input
-            type="number"
-            id="srUnits"
-            name="srUnits"
-            min="0"
-            value="0"
-            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <p class="text-xs text-gray-500 mt-1">
-            Standard pack price: <strong>€1 350.00 per W.U.</strong> (catalog).
-          </p>
+          <label for="srUnits" class="block text-sm font-medium text-gray-700">Complementary Service Requests – Total W.U. ordered</label>
+          <input type="number" id="srUnits" name="srUnits" min="0" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <p class="text-xs text-gray-500 mt-1">Priced at <strong>€1 350.00</strong> per W.U. (catalog).</p>
         </div>
 
-        <!-- Submit -->
-        <button
-          type="submit"
-          class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
+        <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
           Generate Proposal
         </button>
       </form>
 
-      <!-- =====  OUTPUT  ===== -->
+      <!-- =================== OUTPUT =================== -->
       <section id="result" class="mt-6 p-4 bg-gray-50 rounded-md hidden">
-        <h2 class="text-lg font-semibold mb-2">
-          Proposal for Orbion Subscription
-        </h2>
+        <h2 class="text-lg font-semibold mb-2">Proposal for Orbion Subscription</h2>
         <hr class="mb-2" />
         <p id="packageText" class="text-gray-700"></p>
         <p id="usersText" class="text-gray-700"></p>
@@ -135,28 +72,18 @@
       </section>
     </main>
 
-    <!-- =====  SCRIPT  ===== -->
+    <!-- =================== SCRIPT =================== -->
     <script>
-      // =============================
-      //  DOM helpers
-      // =============================
       const $ = (id) => document.getElementById(id);
 
-      // =============================
-      //  PRICE CATALOG  (EUR, excl. tax)
-      //  Mirrors January‑2025 Evidian SaaS catalog
-      // =============================
+      // ===== PRICE CATALOG (EUR) =====
       const PRICE = {
-        // Base subscriptions (€/user/month)
         access: { base: 6.0, analytics: 0.6 },
-        accessGov: { base: 25.26, analytics: 1.78 },
-        // Complementary services – Working‑Unit (€/WU)
-        srWU: 1350.0, // SKU WUSSRO0‑0010 starter pack
+        accessGov: { base: 25.263, analytics: 1.775 },
+        srWU: 1350.0,
       };
 
-      // =============================
-      //  FEATURE SETS  (for display only)
-      // =============================
+      // ===== FEATURES (for UI) =====
       const FEATURES = {
         access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
         accessGov: [
@@ -166,86 +93,50 @@
           "Privileged Access Management (PAM)",
         ],
         analytics: ["Analytics Editor option"],
-        srPack: ["Complementary service request pack (WU)"]
+        srPack: ["Complementary service request pack (WU)"],
       };
 
-      // =============================
-      //  Calculation engine
-      // =============================
-      function calculate({ users, pkg, hasUpgrade, srUnits }) {
+      // ===== FORMATTER =====
+      const formatEUR = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 2,
+      }).format;
+
+      // ===== CALC ENGINE =====
+      function calculate(users, pkg, hasUpgrade, srUnits) {
         const unitBase = PRICE[pkg].base;
         const unitAnalytics = hasUpgrade ? PRICE[pkg].analytics : 0;
 
         const baseCost = users * unitBase;
         const upgradeCost = users * unitAnalytics;
-        const srCost = srUnits * PRICE.srWU; // one‑off cost (not per user)
+        const srCost = srUnits * PRICE.srWU;
 
-        const totalMonthly = baseCost + upgradeCost;
-        const totalYearly = totalMonthly * 12 + srCost; // workbook summarises yearly + SR
+        const monthly = baseCost + upgradeCost;
+        const yearly = monthly * 12 + srCost;
 
-        return { baseCost, upgradeCost, srCost, totalMonthly, totalYearly };
+        return { baseCost, upgradeCost, srCost, monthly, yearly };
       }
 
-      // Currency helper – centralises formatting
-      const formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "EUR",
-        minimumFractionDigits: 2,
-      });
-      const currency = (n) => formatter.format(n);
-
-      // =============================
-      //  UI renderer
-      // =============================
-      function render({ users, pkg, hasUpgrade, srUnits, costs }) {
-        // Selected package
-        $("packageText").textContent = `Selected Package: ${
-          pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"
-        }${hasUpgrade ? " + Analytics Editor" : ""}`;
-        // Users
+      // ===== RENDERER =====
+      function render(users, pkg, hasUpgrade, srUnits, costs) {
+        $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${
+          hasUpgrade ? " + Analytics Editor" : ""
+        }`;
         $("usersText").textContent = `Number of Users: ${users}`;
 
-        // Pricing breakdown list
         const breakdown = [];
-        breakdown.push(
-          `${currency(PRICE[pkg].base)}/user/mo × ${users} users = ${currency(
-            costs.baseCost
-          )}`
-        );
-        if (hasUpgrade) {
-          breakdown.push(
-            `${currency(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${currency(
-              costs.upgradeCost
-            )}`
-          );
-        }
-        if (srUnits > 0) {
-          breakdown.push(
-            `${currency(PRICE.srWU)} per W.U. × ${srUnits} W.U. = ${currency(
-              costs.srCost
-            )} (one‑off)`
-          );
-        }
-        $("breakdownText").innerHTML = breakdown
-          .map((li) => `<li>${li}</li>`) // safe simple HTML
-          .join("");
+        breakdown.push(`${formatEUR(PRICE[pkg].base)}/user/mo × ${users} users = ${formatEUR(costs.baseCost)}`);
+        if (hasUpgrade)
+          breakdown.push(`${formatEUR(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${formatEUR(costs.upgradeCost)}`);
+        if (srUnits > 0) breakdown.push(`${formatEUR(PRICE.srWU)} per W.U. × ${srUnits} W.U. = ${formatEUR(costs.srCost)} (one‑off)`);
+        $("breakdownText").innerHTML = breakdown.map((b) => `<li>${b}</li>`).join("");
 
-        // Totals
-        $("costText").innerHTML = `<strong>Total Cost:</strong> ${currency(
-          costs.totalMonthly
-        )} / month &nbsp;|&nbsp; ${currency(costs.totalYearly)} for first year`;
+        $("costText").innerHTML = `<strong>Total Cost:</strong> ${formatEUR(costs.monthly)} / month &nbsp;|&nbsp; ${formatEUR(costs.yearly)} for first year`;
 
-        // Feature list
-        const featureSet = [
-          ...FEATURES[pkg],
-          ...(hasUpgrade ? FEATURES.analytics : []),
-          ...(srUnits > 0 ? FEATURES.srPack : []),
-        ];
-        $("featuresText").innerHTML = featureSet
-          .map((f) => `<li>${f}</li>`) // list items
-          .join("");
+        const features = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.analytics : []), ...(srUnits > 0 ? FEATURES.srPack : [])];
+        $("featuresText").innerHTML = features.map((f) => `<li>${f}</li>`).join("");
 
-        // Notes
         const notes = [
           "All prices shown are in EUR, excluding taxes.",
           "Subscription billed monthly, in advance.",
@@ -254,43 +145,28 @@
         ];
         $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
 
-        // Reveal the panel
         $("result").classList.remove("hidden");
       }
 
-      // =============================
-      //  Event wiring
-      // =============================
-      document.addEventListener("DOMContentLoaded", () => {
-        const form = $("costForm");
+      // ===== EVENT LISTENER =====
+      $("costForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const users = parseInt($("numUsers").value, 10) || 0;
+        const pkg = $("packageType").value;
+        const hasUpgrade = $("upgrade").checked;
+        const srUnits = parseInt($("srUnits").value, 10) || 0;
 
-        // Calculate on submit
-        form.addEventListener("submit", (e) => {
-          e.preventDefault();
+        if (users <= 0) {
+          alert("Enter a valid number of users (≥1).");
+          return;
+        }
+        if (srUnits < 0) {
+          alert("W.U. cannot be negative.");
+          return;
+        }
 
-          const users = +$("numUsers").value;
-          const orderVal = +$("order").value; // placeholder – future discount logic
-          const pkg = $("packageType").value;
-          const hasUpgrade = $("upgrade").checked;
-          const srUnits = +$("srUnits").value || 0;
-
-          // Minimal validation
-          if (!users || users < 1) {
-            alert("Please enter a positive number of users.");
-            return;
-          }
-          if (!orderVal) {
-            alert("Please enter a valid order number.");
-            return;
-          }
-          if (srUnits < 0) {
-            alert("Working‑unit count cannot be negative.");
-            return;
-          }
-
-          const costs = calculate({ users, pkg, hasUpgrade, srUnits });
-          render({ users, pkg, hasUpgrade, srUnits, costs });
-        });
+        const costs = calculate(users, pkg, hasUpgrade, srUnits);
+        render(users, pkg, hasUpgrade, srUnits, costs);
       });
     </script>
   </body>
