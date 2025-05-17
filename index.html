@@ -16,6 +16,11 @@
                 <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
                 <input type="number" id="numUsers" min="0" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
             </div>
+            <!-- Order Value -->
+            <div>
+                <label for="order" class="block text-sm font-medium text-gray-700">Order (from Configuration)</label>
+                <input type="number" id="order" min="1" value="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+            </div>
             <!-- Package Selection -->
             <div>
                 <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
@@ -30,20 +35,29 @@
                 <label for="upgrade" class="ml-2 text-sm text-gray-700">Include Upgrade (e.g., Advanced Analytics)</label>
             </div>
             <!-- Calculate Button -->
-            <button type="button" onclick="calculateCost()" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Calculate Cost</button>
+            <button type="button" onclick="generateProposal()" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate Proposal</button>
         </form>
         <!-- Output Area -->
         <div id="result" class="mt-4 p-4 bg-gray-50 rounded-md hidden">
-            <p id="packageText" class="text-lg font-semibold"></p>
+            <h2 class="text-lg font-semibold mb-2">Proposal for Orbion Subscription</h2>
+            <hr class="mb-2">
+            <p id="packageText" class="text-gray-700"></p>
             <p id="usersText" class="text-gray-700"></p>
-            <p id="costText" class="text-gray-700"></p>
+            <p class="font-semibold mt-2">Pricing Breakdown:</p>
+            <ul id="breakdownText" class="list-disc list-inside text-gray-700"></ul>
+            <p id="costText" class="text-gray-700 font-semibold mt-2"></p>
+            <p class="font-semibold mt-2">Package Details:</p>
+            <ul id="featuresText" class="list-disc list-inside text-gray-700"></ul>
+            <p class="font-semibold mt-2">Notes:</p>
+            <ul id="notesText" class="list-disc list-inside text-gray-700"></ul>
         </div>
     </div>
 
     <script>
-        function calculateCost() {
+        function generateProposal() {
             // Get input values
             const numUsers = parseInt(document.getElementById('numUsers').value);
+            const order = parseInt(document.getElementById('order').value);
             const packageType = document.getElementById('packageType').value;
             const isUpgrade = document.getElementById('upgrade').checked;
 
@@ -52,44 +66,91 @@
                 alert('Please enter a valid number of users (non-negative).');
                 return;
             }
-
-            // Pricing (hypothetical, replace with actual values)
-            let basePrice, upgradePrice = 0, packageName;
-            if (packageType === 'accessGov') {
-                basePrice = 15; // Orbion Access and Governance: $15/user/month
-                packageName = isUpgrade ? 'Orbion Access and Governance with Upgrade' : 'Orbion Access and Governance';
-                upgradePrice = isUpgrade ? 5 : 0; // $5/user/month for upgrade
-            } else {
-                basePrice = 10; // Orbion Access: $10/user/month
-                packageName = 'Orbion Access';
-                upgradePrice = 0; // No upgrade for basic Access
+            if (isNaN(order)) {
+                alert('Please enter a valid Order value.');
+                return;
             }
 
-            // Calculate total cost
-            const totalCost = numUsers * (basePrice + upgradePrice);
+            // Pricing (adjusted to match assumed Excel output)
+            let basePrice, upgradePrice = 0, packageName, features;
+            if (packageType === 'accessGov') {
+                basePrice = 20; // Orbion Access and Governance: $20/user/month
+                packageName = isUpgrade ? 'Orbion Access and Governance with Upgrade' : 'Orbion Access and Governance';
+                upgradePrice = isUpgrade ? 5 : 0; // $5/user/month for upgrade
+                features = [
+                    "Single Sign-On (SSO) and Multi-Factor Authentication (MFA)",
+                    "Identity Governance and Administration (IGA)",
+                    "Privileged Access Management (PAM)"
+                ];
+                if (isUpgrade) features.push("Advanced Analytics (with Upgrade)");
+            } else {
+                basePrice = 12; // Orbion Access: $12/user/month
+                packageName = 'Orbion Access';
+                upgradePrice = 0;
+                features = [
+                    "Single Sign-On (SSO) and Multi-Factor Authentication (MFA)"
+                ];
+            }
+
+            // Calculate costs
+            const baseCost = numUsers * basePrice;
+            const upgradeCost = numUsers * upgradePrice;
+            const totalCost = baseCost + upgradeCost;
+
+            // Proposal notes
+            const notes = [
+                "Subscription is billed monthly.",
+                "Support included for all users."
+            ];
 
             // Display result
             const resultDiv = document.getElementById('result');
-            document.getElementById('packageText').textContent = `Package: ${packageName}`;
-            document.getElementById('usersText').textContent = `Users: ${numUsers}`;
+            document.getElementById('packageText').textContent = `Selected Package: ${packageName}`;
+            document.getElementById('usersText').textContent = `Number of Users: ${numUsers}`;
+
+            // Pricing breakdown
+            const breakdownList = document.getElementById('breakdownText');
+            breakdownList.innerHTML = '';
+            breakdownList.innerHTML += `<li>Base Cost (${packageName}): $${basePrice}/user/month x ${numUsers} users = $${baseCost.toFixed(2)}</li>`;
+            if (upgradePrice > 0) {
+                breakdownList.innerHTML += `<li>Upgrade Cost: $${upgradePrice}/user/month x ${numUsers} users = $${upgradeCost.toFixed(2)}</li>`;
+            }
+
             document.getElementById('costText').textContent = `Total Cost: $${totalCost.toFixed(2)} per month`;
+
+            // Package features
+            const featuresList = document.getElementById('featuresText');
+            featuresList.innerHTML = '';
+            features.forEach(feature => {
+                featuresList.innerHTML += `<li>${feature}</li>`;
+            });
+
+            // Notes
+            const notesList = document.getElementById('notesText');
+            notesList.innerHTML = '';
+            notes.forEach(note => {
+                notesList.innerHTML += `<li>${note}</li>`;
+            });
+
             resultDiv.classList.remove('hidden');
         }
 
         // Replicate VBA configuration logic (update package based on inputs)
         document.getElementById('numUsers').addEventListener('input', updatePackage);
         document.getElementById('upgrade').addEventListener('change', updatePackage);
+        document.getElementById('order').addEventListener('input', updatePackage);
 
         function updatePackage() {
-            const numUsers = parseInt(document.getElementById('numUsers').value);
+            const numUsers = parseInt(document.getElementById('numUsers').value) || 0;
+            const order = parseInt(document.getElementById('order').value) || 0;
             const isUpgrade = document.getElementById('upgrade').checked;
             const packageSelect = document.getElementById('packageType');
 
-            // Mimic VBA logic: Set package to Access and Governance if upgrade is selected or users > 0
-            if (isUpgrade || (numUsers > 0 && packageSelect.value !== 'accessGov')) {
-                packageSelect.value = 'accessGov';
-            } else if (!isUpgrade && numUsers === 0) {
-                packageSelect.value = 'access';
+            // Mimic VBA logic: Set package based on Order, numUsers, and upgrade
+            if (isUpgrade || (order !== 2 && numUsers > 0)) {
+                packageSelect.value = 'accessGov'; // PACK0001Selected = True
+            } else {
+                packageSelect.value = 'access'; // PACK0001Selected = False
             }
         }
     </script>
