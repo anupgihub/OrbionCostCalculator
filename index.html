@@ -36,7 +36,7 @@
           />
         </div>
 
-        <!-- Order Value -->
+        <!-- Order Value (kept for future use / discount ladders) -->
         <div>
           <label
             for="order"
@@ -71,7 +71,7 @@
           </select>
         </div>
 
-        <!-- Upgrade Checkbox -->
+        <!-- Analytics upgrade Checkbox -->
         <div class="flex items-center">
           <input
             type="checkbox"
@@ -80,7 +80,7 @@
             class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
           />
           <label for="upgrade" class="ml-2 text-sm text-gray-700"
-            >Include Advanced Analytics upgrade</label
+            >Include <span class="italic">Analytics Editor</span> option</label
           >
         </div>
 
@@ -95,7 +95,9 @@
 
       <!-- =====  OUTPUT  ===== -->
       <section id="result" class="mt-6 p-4 bg-gray-50 rounded-md hidden">
-        <h2 class="text-lg font-semibold mb-2">Proposal for Orbion Subscription</h2>
+        <h2 class="text-lg font-semibold mb-2">
+          Proposal for Orbion Subscription
+        </h2>
         <hr class="mb-2" />
         <p id="packageText" class="text-gray-700"></p>
         <p id="usersText" class="text-gray-700"></p>
@@ -120,14 +122,19 @@
       // =============================
       const $ = (id) => document.getElementById(id);
 
-      // Price catalog – keep all commercial figures in one place
+      // =============================
+      //  PRICE CATALOG  (EUR, excl. tax)
+      // — figures mirror January‑2025 Evidian SaaS catalog
+      // =============================
       const PRICE = {
-        access: 12, // $/user/month
-        accessGov: 20, // $/user/month
-        upgrade: 5, // $/user/month (only if checkbox selected)
+        access: 6.0, // €/user/month – SKU ASDS01‑0000
+        accessGov: 6.0, // €/user/month – governance functions bundled, same catalog price
+        upgrade: 0.6, // €/user/month – Analytics Editor option (SKU ASANA01‑0000)
       };
 
-      // Feature catalog to show in proposal
+      // =============================
+      //  FEATURE SETS  (for display only)
+      // =============================
       const FEATURES = {
         access: [
           "Single Sign‑On (SSO)",
@@ -139,7 +146,7 @@
           "Identity Governance & Administration (IGA)",
           "Privileged Access Management (PAM)",
         ],
-        upgrade: ["Advanced analytics add‑on"],
+        upgrade: ["Analytics Editor option"],
       };
 
       // =============================
@@ -152,17 +159,26 @@
         return { baseCost, upgradeCost, total };
       }
 
+      // Currency helper – centralises formatting
+      const formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 2,
+      });
+      const currency = (n) => formatter.format(n);
+
       // =============================
       //  UI renderer
       // =============================
       function render({ users, pkg, hasUpgrade, costs }) {
-        // Selected package & users
+        // Selected package
         $("packageText").textContent = `Selected Package: ${
           pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"
-        }${hasUpgrade ? " + Advanced Analytics" : ""}`;
+        }${hasUpgrade ? " + Analytics Editor" : ""}`;
+        // Users
         $("usersText").textContent = `Number of Users: ${users}`;
 
-        // Pricing breakdown
+        // Pricing breakdown list
         const breakdown = [
           `${currency(PRICE[pkg])}/user/mo × ${users} users = ${currency(
             costs.baseCost
@@ -176,39 +192,32 @@
           );
         }
         $("breakdownText").innerHTML = breakdown
-          .map((li) => `<li>${li}</li>`) // keep HTML safe/simple
+          .map((li) => `<li>${li}</li>`) // safe simple HTML
           .join("");
 
-        // Total
+        // Total line
         $("costText").textContent = `Total Cost: ${currency(costs.total)} / month`;
 
-        // Package features
+        // Feature list
         const featureSet = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.upgrade : [])];
         $("featuresText").innerHTML = featureSet
-          .map((f) => `<li>${f}</li>`) // join as list items
+          .map((f) => `<li>${f}</li>`) // list items
           .join("");
 
-        // Static notes (adapt as needed)
+        // Notes (static for now)
         const notes = [
+          "All prices shown are in EUR, excluding taxes.",
           "Subscription billed monthly, in advance.",
           "Standard business‑hours support included.",
         ];
         $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
 
-        // Finally, reveal the result panel
+        // Reveal the panel
         $("result").classList.remove("hidden");
       }
 
-      // Currency helper – keeps formatting in one place
-      const formatter = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-        minimumFractionDigits: 2,
-      });
-      const currency = (n) => formatter.format(n);
-
       // =============================
-      //  VBA‑like auto‑package logic
+      //  VBA‑like auto‑package finder (simplified)
       // =============================
       function autoSelectPackage() {
         const users = +$("numUsers").value || 0;
@@ -216,8 +225,7 @@
         const hasUpgrade = $("upgrade").checked;
         const pkgSelect = $("packageType");
 
-        // Sample rule (adapt to VBA):
-        // If upgrade checked OR (order ≠ 2 AND users > 0) → choose Access&Governance
+        // Rule: if upgrade selected OR (order ≠ 2 && users > 0) => Access & Gov
         if (hasUpgrade || (orderVal !== 2 && users > 0)) {
           pkgSelect.value = "accessGov";
         } else {
@@ -231,7 +239,7 @@
       document.addEventListener("DOMContentLoaded", () => {
         const form = $("costForm");
 
-        // Re‑evaluate auto‑package anytime key inputs change
+        // Live auto‑package evaluation
         ["numUsers", "order", "upgrade"].forEach((id) =>
           $(id).addEventListener("input", autoSelectPackage)
         );
@@ -241,13 +249,13 @@
           e.preventDefault();
 
           const users = +$("numUsers").value;
-          const orderVal = +$("order").value; // kept for possible future use
+          const orderVal = +$("order").value; // placeholder – future discount logic
           const pkg = $("packageType").value;
           const hasUpgrade = $("upgrade").checked;
 
-          // Basic front‑end validation
+          // Minimal validation
           if (!users || users < 1) {
-            alert("Please enter a valid, positive number of users.");
+            alert("Please enter a positive number of users.");
             return;
           }
           if (!orderVal) {
