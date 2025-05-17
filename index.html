@@ -1,158 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Orbion Cost Calculator</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-4 text-center">Orbion Cost Calculator</h1>
-        <form id="costForm" class="space-y-4">
-            <!-- Number of Users -->
-            <div>
-                <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
-                <input type="number" id="numUsers" min="0" value="0" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-            </div>
-            <!-- Order Value -->
-            <div>
-                <label for="order" class="block text-sm font-medium text-gray-700">Order (from Configuration)</label>
-                <input type="number" id="order" min="1" value="1" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-            </div>
-            <!-- Package Selection -->
-            <div>
-                <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
-                <select id="packageType" class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="access">Orbion Access</option>
-                    <option value="accessGov">Orbion Access and Governance</option>
-                </select>
-            </div>
-            <!-- Upgrade Checkbox -->
-            <div class="flex items-center">
-                <input type="checkbox" id="upgrade" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                <label for="upgrade" class="ml-2 text-sm text-gray-700">Include Upgrade (e.g., Advanced Analytics)</label>
-            </div>
-            <!-- Calculate Button -->
-            <button type="button" onclick="generateProposal()" class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate Proposal</button>
-        </form>
-        <!-- Output Area -->
-        <div id="result" class="mt-4 p-4 bg-gray-50 rounded-md hidden">
-            <h2 class="text-lg font-semibold mb-2">Proposal for Orbion Subscription</h2>
-            <hr class="mb-2">
-            <p id="packageText" class="text-gray-700"></p>
-            <p id="usersText" class="text-gray-700"></p>
-            <p class="font-semibold mt-2">Pricing Breakdown:</p>
-            <ul id="breakdownText" class="list-disc list-inside text-gray-700"></ul>
-            <p id="costText" class="text-gray-700 font-semibold mt-2"></p>
-            <p class="font-semibold mt-2">Package Details:</p>
-            <ul id="featuresText" class="list-disc list-inside text-gray-700"></ul>
-            <p class="font-semibold mt-2">Notes:</p>
-            <ul id="notesText" class="list-disc list-inside text-gray-700"></ul>
+  </head>
+  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <main
+      class="bg-white p-6 rounded-lg shadow-lg w-full max-w-md"
+      aria-labelledby="title"
+    >
+      <h1 id="title" class="text-2xl font-bold mb-4 text-center">
+        Orbion Cost Calculator
+      </h1>
+
+      <!-- =====  FORM  ===== -->
+      <form id="costForm" class="space-y-4" novalidate>
+        <!-- Number of Users -->
+        <div>
+          <label
+            for="numUsers"
+            class="block text-sm font-medium text-gray-700"
+            >Number of Users</label
+          >
+          <input
+            type="number"
+            id="numUsers"
+            name="numUsers"
+            min="1"
+            value="1"
+            required
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-    </div>
 
+        <!-- Order Value -->
+        <div>
+          <label
+            for="order"
+            class="block text-sm font-medium text-gray-700"
+            >Order (from Configuration)</label
+          >
+          <input
+            type="number"
+            id="order"
+            name="order"
+            min="1"
+            value="1"
+            required
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <!-- Package Selection -->
+        <div>
+          <label
+            for="packageType"
+            class="block text-sm font-medium text-gray-700"
+            >Package</label
+          >
+          <select
+            id="packageType"
+            name="packageType"
+            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="access">Orbion Access</option>
+            <option value="accessGov">Orbion Access &amp; Governance</option>
+          </select>
+        </div>
+
+        <!-- Upgrade Checkbox -->
+        <div class="flex items-center">
+          <input
+            type="checkbox"
+            id="upgrade"
+            name="upgrade"
+            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+          />
+          <label for="upgrade" class="ml-2 text-sm text-gray-700"
+            >Include Advanced Analytics upgrade</label
+          >
+        </div>
+
+        <!-- Submit -->
+        <button
+          type="submit"
+          class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          Generate Proposal
+        </button>
+      </form>
+
+      <!-- =====  OUTPUT  ===== -->
+      <section id="result" class="mt-6 p-4 bg-gray-50 rounded-md hidden">
+        <h2 class="text-lg font-semibold mb-2">Proposal for Orbion Subscription</h2>
+        <hr class="mb-2" />
+        <p id="packageText" class="text-gray-700"></p>
+        <p id="usersText" class="text-gray-700"></p>
+
+        <p class="font-semibold mt-4">Pricing Breakdown:</p>
+        <ul id="breakdownText" class="list-disc list-inside text-gray-700"></ul>
+
+        <p id="costText" class="text-gray-700 font-semibold mt-4"></p>
+
+        <p class="font-semibold mt-4">Package Features:</p>
+        <ul id="featuresText" class="list-disc list-inside text-gray-700"></ul>
+
+        <p class="font-semibold mt-4">Notes:</p>
+        <ul id="notesText" class="list-disc list-inside text-gray-700"></ul>
+      </section>
+    </main>
+
+    <!-- =====  SCRIPT  ===== -->
     <script>
-        function generateProposal() {
-            // Get input values
-            const numUsers = parseInt(document.getElementById('numUsers').value);
-            const order = parseInt(document.getElementById('order').value);
-            const packageType = document.getElementById('packageType').value;
-            const isUpgrade = document.getElementById('upgrade').checked;
+      // =============================
+      //  DOM helpers
+      // =============================
+      const $ = (id) => document.getElementById(id);
 
-            // Validate inputs
-            if (isNaN(numUsers) || numUsers < 0) {
-                alert('Please enter a valid number of users (non-negative).');
-                return;
-            }
-            if (isNaN(order)) {
-                alert('Please enter a valid Order value.');
-                return;
-            }
+      // Price catalog – keep all commercial figures in one place
+      const PRICE = {
+        access: 12, // $/user/month
+        accessGov: 20, // $/user/month
+        upgrade: 5, // $/user/month (only if checkbox selected)
+      };
 
-            // Pricing (adjusted to match assumed Excel output)
-            let basePrice, upgradePrice = 0, packageName, features;
-            if (packageType === 'accessGov') {
-                basePrice = 20; // Orbion Access and Governance: $20/user/month
-                packageName = isUpgrade ? 'Orbion Access and Governance with Upgrade' : 'Orbion Access and Governance';
-                upgradePrice = isUpgrade ? 5 : 0; // $5/user/month for upgrade
-                features = [
-                    "Single Sign-On (SSO) and Multi-Factor Authentication (MFA)",
-                    "Identity Governance and Administration (IGA)",
-                    "Privileged Access Management (PAM)"
-                ];
-                if (isUpgrade) features.push("Advanced Analytics (with Upgrade)");
-            } else {
-                basePrice = 12; // Orbion Access: $12/user/month
-                packageName = 'Orbion Access';
-                upgradePrice = 0;
-                features = [
-                    "Single Sign-On (SSO) and Multi-Factor Authentication (MFA)"
-                ];
-            }
+      // Feature catalog to show in proposal
+      const FEATURES = {
+        access: [
+          "Single Sign‑On (SSO)",
+          "Multi‑Factor Authentication (MFA)",
+        ],
+        accessGov: [
+          "Single Sign‑On (SSO)",
+          "Multi‑Factor Authentication (MFA)",
+          "Identity Governance & Administration (IGA)",
+          "Privileged Access Management (PAM)",
+        ],
+        upgrade: ["Advanced analytics add‑on"],
+      };
 
-            // Calculate costs
-            const baseCost = numUsers * basePrice;
-            const upgradeCost = numUsers * upgradePrice;
-            const totalCost = baseCost + upgradeCost;
+      // =============================
+      //  Calculation engine
+      // =============================
+      function calculate({ users, pkg, hasUpgrade }) {
+        const baseCost = users * PRICE[pkg];
+        const upgradeCost = hasUpgrade ? users * PRICE.upgrade : 0;
+        const total = baseCost + upgradeCost;
+        return { baseCost, upgradeCost, total };
+      }
 
-            // Proposal notes
-            const notes = [
-                "Subscription is billed monthly.",
-                "Support included for all users."
-            ];
+      // =============================
+      //  UI renderer
+      // =============================
+      function render({ users, pkg, hasUpgrade, costs }) {
+        // Selected package & users
+        $("packageText").textContent = `Selected Package: ${
+          pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"
+        }${hasUpgrade ? " + Advanced Analytics" : ""}`;
+        $("usersText").textContent = `Number of Users: ${users}`;
 
-            // Display result
-            const resultDiv = document.getElementById('result');
-            document.getElementById('packageText').textContent = `Selected Package: ${packageName}`;
-            document.getElementById('usersText').textContent = `Number of Users: ${numUsers}`;
-
-            // Pricing breakdown
-            const breakdownList = document.getElementById('breakdownText');
-            breakdownList.innerHTML = '';
-            breakdownList.innerHTML += `<li>Base Cost (${packageName}): $${basePrice}/user/month x ${numUsers} users = $${baseCost.toFixed(2)}</li>`;
-            if (upgradePrice > 0) {
-                breakdownList.innerHTML += `<li>Upgrade Cost: $${upgradePrice}/user/month x ${numUsers} users = $${upgradeCost.toFixed(2)}</li>`;
-            }
-
-            document.getElementById('costText').textContent = `Total Cost: $${totalCost.toFixed(2)} per month`;
-
-            // Package features
-            const featuresList = document.getElementById('featuresText');
-            featuresList.innerHTML = '';
-            features.forEach(feature => {
-                featuresList.innerHTML += `<li>${feature}</li>`;
-            });
-
-            // Notes
-            const notesList = document.getElementById('notesText');
-            notesList.innerHTML = '';
-            notes.forEach(note => {
-                notesList.innerHTML += `<li>${note}</li>`;
-            });
-
-            resultDiv.classList.remove('hidden');
+        // Pricing breakdown
+        const breakdown = [
+          `${currency(PRICE[pkg])}/user/mo × ${users} users = ${currency(
+            costs.baseCost
+          )}`,
+        ];
+        if (hasUpgrade) {
+          breakdown.push(
+            `${currency(PRICE.upgrade)}/user/mo upgrade × ${users} users = ${currency(
+              costs.upgradeCost
+            )}`
+          );
         }
+        $("breakdownText").innerHTML = breakdown
+          .map((li) => `<li>${li}</li>`) // keep HTML safe/simple
+          .join("");
 
-        // Replicate VBA configuration logic (update package based on inputs)
-        document.getElementById('numUsers').addEventListener('input', updatePackage);
-        document.getElementById('upgrade').addEventListener('change', updatePackage);
-        document.getElementById('order').addEventListener('input', updatePackage);
+        // Total
+        $("costText").textContent = `Total Cost: ${currency(costs.total)} / month`;
 
-        function updatePackage() {
-            const numUsers = parseInt(document.getElementById('numUsers').value) || 0;
-            const order = parseInt(document.getElementById('order').value) || 0;
-            const isUpgrade = document.getElementById('upgrade').checked;
-            const packageSelect = document.getElementById('packageType');
+        // Package features
+        const featureSet = [...FEATURES[pkg], ...(hasUpgrade ? FEATURES.upgrade : [])];
+        $("featuresText").innerHTML = featureSet
+          .map((f) => `<li>${f}</li>`) // join as list items
+          .join("");
 
-            // Mimic VBA logic: Set package based on Order, numUsers, and upgrade
-            if (isUpgrade || (order !== 2 && numUsers > 0)) {
-                packageSelect.value = 'accessGov'; // PACK0001Selected = True
-            } else {
-                packageSelect.value = 'access'; // PACK0001Selected = False
-            }
+        // Static notes (adapt as needed)
+        const notes = [
+          "Subscription billed monthly, in advance.",
+          "Standard business‑hours support included.",
+        ];
+        $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+
+        // Finally, reveal the result panel
+        $("result").classList.remove("hidden");
+      }
+
+      // Currency helper – keeps formatting in one place
+      const formatter = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+      });
+      const currency = (n) => formatter.format(n);
+
+      // =============================
+      //  VBA‑like auto‑package logic
+      // =============================
+      function autoSelectPackage() {
+        const users = +$("numUsers").value || 0;
+        const orderVal = +$("order").value || 0;
+        const hasUpgrade = $("upgrade").checked;
+        const pkgSelect = $("packageType");
+
+        // Sample rule (adapt to VBA):
+        // If upgrade checked OR (order ≠ 2 AND users > 0) → choose Access&Governance
+        if (hasUpgrade || (orderVal !== 2 && users > 0)) {
+          pkgSelect.value = "accessGov";
+        } else {
+          pkgSelect.value = "access";
         }
+      }
+
+      // =============================
+      //  Event wiring
+      // =============================
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = $("costForm");
+
+        // Re‑evaluate auto‑package anytime key inputs change
+        ["numUsers", "order", "upgrade"].forEach((id) =>
+          $(id).addEventListener("input", autoSelectPackage)
+        );
+
+        // Calculate on submit
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const users = +$("numUsers").value;
+          const orderVal = +$("order").value; // kept for possible future use
+          const pkg = $("packageType").value;
+          const hasUpgrade = $("upgrade").checked;
+
+          // Basic front‑end validation
+          if (!users || users < 1) {
+            alert("Please enter a valid, positive number of users.");
+            return;
+          }
+          if (!orderVal) {
+            alert("Please enter a valid order number.");
+            return;
+          }
+
+          const costs = calculate({ users, pkg, hasUpgrade });
+          render({ users, pkg, hasUpgrade, costs });
+        });
+      });
     </script>
-</body>
+  </body>
 </html>
