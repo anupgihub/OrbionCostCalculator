@@ -1,213 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Orbion Cost Calculator</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-  </head>
-  <body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <main class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg" aria-labelledby="title">
-      <h1 id="title" class="text-2xl font-bold mb-6 text-center">Orbion Cost Calculator</h1>
-
-      <!-- ================= FORM ================= -->
-      <form id="costForm" class="space-y-6" novalidate>
-        <!-- Users -->
-        <div>
-          <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
-          <input type="number" id="numUsers" name="numUsers" min="1" value="100" required
-            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        </div>
-
-        <!-- Package -->
-        <div>
-          <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
-          <select id="packageType" name="packageType"
-            class="mt-1 block w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <option value="access">Orbion Access</option>
-            <option value="accessGov" selected>Orbion Access &amp; Governance</option>
-          </select>
-        </div>
-
-        <!-- Analytics option -->
-        <div class="flex items-center">
-          <input type="checkbox" id="upgrade" name="upgrade"
-            class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
-          <label for="upgrade" class="ml-2 text-sm text-gray-700">Include <span class="italic">Analytics Editor</span> option</label>
-        </div>
-
-        <!-- ===== STANDARD SRs ===== -->
-        <fieldset id="standardSR" class="border-t pt-4 space-y-3">
-          <legend class="font-semibold text-sm text-gray-700 mb-1">Standard Service Requests</legend>
-          <p class="text-xs text-gray-500 mb-2">Each SR consumes <strong>2&nbsp;W.U.</strong>. Unit W.U. price: <strong>€1 350.00</strong>.</p>
-
-          <div class="flex items-center justify-between gap-3">
-            <label class="flex-1 text-sm">SSR‑0009 – non‑pre‑integrated SAML app</label>
-            <input type="number" min="0" value="0" data-sr-code="SSR-0009"
-              class="w-24 p-1 border rounded-md text-right" />
-          </div>
-          <div class="flex items-center justify-between gap-3">
-            <label class="flex-1 text-sm">SSR‑0010 – external auth method study</label>
-            <input type="number" min="0" value="0" data-sr-code="SSR-0010"
-              class="w-24 p-1 border rounded-md text-right" />
-          </div>
-          <div class="flex items-center justify-between gap-3">
-            <label class="flex-1 text-sm">SSR‑0017 – AD‑domain integration</label>
-            <input type="number" min="0" value="0" data-sr-code="SSR-0017"
-              class="w-24 p-1 border rounded-md text-right" />
-          </div>
-        </fieldset>
-
-        <button type="submit"
-          class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Generate
-          Proposal</button>
-      </form>
-
-      <!-- ================= OUTPUT ================= -->
-      <section id="result" class="mt-8 p-4 bg-gray-50 rounded-md hidden">
-        <h2 class="text-lg font-semibold mb-3">Proposal for Orbion Subscription</h2>
-        <hr class="mb-4" />
-        <p id="packageText" class="text-gray-700"></p>
-        <p id="usersText" class="text-gray-700"></p>
-
-        <p class="font-semibold mt-4">Pricing Breakdown:</p>
-        <ul id="breakdownText" class="list-disc list-inside text-gray-700"></ul>
-
-        <div class="mt-4 space-y-1 text-gray-800">
-          <p id="subYearly" class="font-medium"></p>
-          <p id="srOneOff" class="font-medium"></p>
-          <p id="totalYearly" class="font-bold"></p>
-        </div>
-
-        <p class="font-semibold mt-4">Package Features:</p>
-        <ul id="featuresText" class="list-disc list-inside text-gray-700"></ul>
-
-        <p class="font-semibold mt-4">Notes:</p>
-        <ul id="notesText" class="list-disc list-inside text-gray-700"></ul>
-      </section>
-    </main>
-
-    <!-- ================= SCRIPT ================= -->
-    <script>
-      // === DOM helper ===
-      const $ = (id) => document.getElementById(id);
-
-      // === PRICE CATALOG (EUR) ===
-      const PRICE = {
-        access: { base: 6.0, analytics: 0.6 },
-        accessGov: { base: 25.263, analytics: 1.775 },
-        srWU: 1350.0,
-        srTable: {
-          "SSR-0009": { wu: 2, label: "SSR‑0009" },
-          "SSR-0010": { wu: 2, label: "SSR‑0010" },
-          "SSR-0017": { wu: 2, label: "SSR‑0017" },
-        },
-        starterPack: { wu: 35, sku: "PACK-0001", label: "Starter pack" },
-      };
-
-      // === FEATURES TABLE ===
-      const FEATURES = {
-        access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
-        accessGov: [
-          "Single Sign‑On (SSO)",
-          "Multi‑Factor Authentication (MFA)",
-          "Identity Governance & Administration (IGA)",
-          "Privileged Access Management (PAM)",
-        ],
-        analytics: ["Analytics Editor option"],
-        srPack: ["Complementary service request pack (WU)"],
-      };
-
-      // === CURRENCY FORMATTER ===
-      const fmt = new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "EUR",
-        minimumFractionDigits: 2,
-      }).format;
-
-      // === Collect SR quantities ===
-      const collectSR = () => {
-        const obj = {};
-        document.querySelectorAll("[data-sr-code]").forEach((el) => {
-          obj[el.dataset.srCode] = parseInt(el.value, 10) || 0;
-        });
-        return obj;
-      };
-
-      // === Total WU ===
-      const totalWU = (pkg, srQty) => {
-        let wu = Object.entries(srQty).reduce((sum, [code, qty]) => sum + qty * PRICE.srTable[code].wu, 0);
-        if (pkg === "accessGov") wu += PRICE.starterPack.wu;
-        return wu;
-      };
-
-      // === Main calc ===
-      function calculate(users, pkg, upgrade, srQty) {
-        const unitBase = PRICE[pkg].base;
-        const unitUpg = upgrade ? PRICE[pkg].analytics : 0;
-
-        const baseCost = users * unitBase;
-        const upgCost = users * unitUpg;
-
-        const wuCnt = totalWU(pkg, srQty);
-        const srCost = wuCnt * PRICE.srWU;
-
-        const monthly = baseCost + upgCost;
-        const yearlySub = monthly * 12;
-        const yearlyTotal = yearlySub + srCost;
-
-        return { baseCost, upgCost, srCost, monthly, yearlySub, yearlyTotal, wuCnt };
-      }
-
-      // === Render ===
-      function render(users, pkg, upgrade, srQty, c) {
-        $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${upgrade ? " + Analytics Editor" : ""}`;
-        $("usersText").textContent = `Number of Users: ${users}`;
-
-        // breakdown list
-        const list = [];
-        list.push(`${fmt(PRICE[pkg].base)}/user/mo × ${users} users = ${fmt(c.baseCost)}`);
-        if (upgrade) list.push(`${fmt(PRICE[pkg].analytics)}/user/mo upgrade × ${users} users = ${fmt(c.upgCost)}`);
-        if (c.wuCnt > 0) list.push(`${c.wuCnt} W.U. × ${fmt(PRICE.srWU)} = ${fmt(c.srCost)} (one‑off)`);
-        $("breakdownText").innerHTML = list.map((x) => `<li>${x}</li>`).join("");
-
-        $("subYearly").textContent = `Year‑1 subscription (12 × monthly): ${fmt(c.yearlySub)}`;
-        $("srOneOff").textContent = `Complementary services (WU): ${fmt(c.srCost)}`;
-        $("totalYearly").textContent = `TOTAL first‑year spend: ${fmt(c.yearlyTotal)}`;
-
-        // features
-        const feats = [
-          ...FEATURES[pkg],
-          ...(upgrade ? FEATURES.analytics : []),
-          ...(c.wuCnt > 0 ? FEATURES.srPack : []),
-        ];
-        $("featuresText").innerHTML = feats.map((f) => `<li>${f}</li>`).join("");
-
-        // notes
-        $("notesText").innerHTML = [
-          "All prices shown are in EUR, excluding taxes.",
-          "Subscription billed monthly, in advance.",
-          "Complementary service‑request packs invoiced upon delivery.",
-          "Standard business‑hours support included.",
-        ].map((n) => `<li>${n}</li>`).join("");
-
-        $("result").classList.remove("hidden");
-      }
-
-      // === Form submit ===
-      $("costForm").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const users = parseInt($("numUsers").value, 10) || 0;
-        if (users < 1) return alert("Number of users must be at least 1");
-
-        const pkg = $("packageType").value;
-        const upgrade = $("upgrade").checked;
-        const srQty = collectSR();
-
-        const costs = calculate(users, pkg, upgrade, srQty);
-        render(users, pkg, upgrade, srQty, costs);
-      });
-    </script>
-  </body>
-</html>
+<div class="orbion-calculator-wrapper">
+  <div class="orbion-calculator bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold text-center mb-4" style="color:#000">Orbion Price Calculator</h1>
+    <form id="costForm" class="space-y-6" novalidate>
+      <div>
+        <label for="numUsers" class="block text-sm font-medium text-gray-700">Number of Users</label>
+        <input type="number" id="numUsers" name="numUsers" min="1" value="100"
+          class="mt-1 block w-full p-2 border border-gray-300 rounded-md" required />
+      </div>
+      <div>
+        <label for="packageType" class="block text-sm font-medium text-gray-700">Package</label>
+        <select id="packageType" name="packageType"
+          class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+          <option value="access">Orbion Access</option>
+          <option value="accessGov" selected>Orbion Access & Governance</option>
+        </select>
+      </div>
+      <div class="flex items-center">
+        <input type="checkbox" id="upgrade" name="upgrade" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+        <label for="upgrade" class="ml-2 text-sm text-gray-700">Include <span class="italic">Analytics Editor Option</span></label>
+      </div>
+      <div class="flex items-center">
+        <input type="checkbox" id="recert" name="recert" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+        <label for="recert" class="ml-2 text-sm text-gray-700">Include <span class="italic">Recertification Campaign</span></label>
+      </div>
+      <div>
+        <label for="contractYears" class="block text-sm font-medium text-gray-700">Contract Duration (Years)</label>
+        <select id="contractYears" name="contractYears"
+          class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+          <option value="1" selected>1 Year</option>
+          <option value="2">2 Years</option>
+          <option value="3">3 Years</option>
+          <option value="5">5 Years</option>
+        </select>
+      </div>
+      <button type="submit"
+        class="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700">Generate Proposal</button>
+    </form>
+    <section id="result" class="p-6 bg-gray-50 rounded-md hidden border border-gray-200 mt-6">
+      <h2 class="text-xl font-semibold mb-4 text-blue-800">Proposal for Orbion Subscription</h2>
+      <p id="packageText" class="text-gray-700"></p>
+      <p id="usersText" class="text-gray-700"></p>
+      <p id="durationText" class="text-gray-700 mb-4"></p>
+      <p class="mt-4" style="font-weight:700; color:#000">Price Breakdown:</p>
+      <ul id="breakdownText" class="list-disc list-inside text-gray-700"></ul>
+      <div class="mt-4 space-y-1 text-gray-800">
+        <p id="subYearly" class="font-medium"></p>
+        <p id="srOneOff" class="font-medium"></p>
+        <p id="totalYearly" class="text-lg" style="font-weight:700; color:#000"></p>
+      </div>
+      <p class="mt-4" style="font-weight:700; color:#000">Package Features:</p>
+      <ul id="featuresText" class="list-disc list-inside text-gray-700"></ul>
+      <p class="mt-4" style="font-weight:700; color:#000">Notes:</p>
+      <ul id="notesText" class="list-disc list-inside text-gray-700"></ul>
+    </section>
+  </div>
+</div>
