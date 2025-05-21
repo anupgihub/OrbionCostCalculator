@@ -1,4 +1,4 @@
-<script>
+
 
   <div class="orbion-calculator-wrapper">
   <div class="orbion-calculator bg-white p-6 rounded-lg shadow-lg max-w-2xl mx-auto">
@@ -57,4 +57,4 @@
     </section>
   </div>
 </div>
-</script>
+
