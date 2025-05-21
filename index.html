@@ -109,7 +109,7 @@
   { max: 500000, price: 0.560 },
   { max: 1000000, price: 0.390 }
 ],
-        analytics: [
+        analyticsAccess: [
   { max: 500, price: 0.600 },
   { max: 1000, price: 0.400 },
   { max: 2000, price: 0.240 },
@@ -125,6 +125,24 @@
   { max: 200000, price: 0.012 },
   { max: 500000, price: 0.008 },
   { max: 1000000, price: 0.006 }
+],
+analyticsAccessGov: [
+  { max: 100, price: 1.775 },
+  { max: 500, price: 1.570 },
+  { max: 1000, price: 0.990 },
+  { max: 2000, price: 0.740 },
+  { max: 3000, price: 0.560 },
+  { max: 5000, price: 0.430 },
+  { max: 7500, price: 0.410 },
+  { max: 10000, price: 0.360 },
+  { max: 15000, price: 0.290 },
+  { max: 20000, price: 0.230 },
+  { max: 25000, price: 0.200 },
+  { max: 50000, price: 0.130 },
+  { max: 100000, price: 0.110 },
+  { max: 200000, price: 0.080 },
+  { max: 500000, price: 0.050 },
+  { max: 1000000, price: 0.030 }
 ],
         recert: [
   { max: 100, price: 3.550 },
@@ -179,12 +197,12 @@
 
       function calculate(users, pkg, upgrade, years, isRecert) {
         const unitBase = getTieredPrice(PRICING_GRID[pkg], users);
-        const unitUpg = getTieredPrice(PRICING_GRID.analytics, users);
+        const unitUpg = getTieredPrice(pkg === "access" ? PRICING_GRID.analyticsAccess : PRICING_GRID.analyticsAccessGov, users);
         const unitRecert = getTieredPrice(PRICING_GRID.recert, users);
 
         const basePrice = users * unitBase;
         const upgradePrice = upgrade ? users * unitUpg : 0;
-        const recertPrice = isRecert ? users * unitRecert : 0;
+        const recertPrice = (pkg === "accessGov" && isRecert) ? users * unitRecert : 0;
         const wuCount = pkg === "accessGov" ? 35 : 0;
         const srPrice = wuCount * 1350;
 
