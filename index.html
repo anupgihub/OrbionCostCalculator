@@ -74,14 +74,19 @@
 
       const PRICING_GRID = {
         access: [
-          { max: 500, price: 2.50 },
-          { max: 1000, price: 2.10 },
-          { max: Infinity, price: 1.00 }
+          { max: 500, price: 6.90 },
+          { max: 1000, price: 6.40 },
+          { max: 2000, price: 5.10 },
+          { max: 3000, price: 4.00 },
+          { max: 5000, price: 3.20 },
+          { max: 10000, price: 2.50 },
+          { max: Infinity, price: 2.10 }
         ],
         accessGov: [
           { max: 100, price: 25.263 },
           { max: 500, price: 21.660 },
           { max: 1000, price: 13.900 },
+          { max: 1200, price: 13.900 }, // new tier added for 1200-user pricing
           { max: 2000, price: 9.750 },
           { max: 3000, price: 7.380 },
           { max: 5000, price: 5.530 },
@@ -164,7 +169,7 @@
         const wuCount = pkg === "accessGov" ? 35 : 0;
         const srPrice = wuCount * 1350;
 
-        const discount = years === 2 ? 0.05 : years === 3 ? 0.08 : years === 5 ? 0.12 : 0;
+        const discount = 0;
         const discountedMonthly = (basePrice + upgradePrice + recertPrice) * (1 - discount);
         const yearlyPrice = discountedMonthly * 12;
         const totalSubscriptionPrice = yearlyPrice * years;
