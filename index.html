@@ -43,10 +43,10 @@
         <input type="checkbox" id="upgrade" name="upgrade" class="mr-2">
         <label for="upgrade">Include Analytics Editor Option</label>
       </div>
-      <div class="flex items-center">
-        <input type="checkbox" id="recert" name="recert" class="mr-2">
-        <label for="recert">Include Recertification Campaign</label>
-      </div>
+      <div class="flex items-center" id="recertBlock">
+  <input type="checkbox" id="recert" name="recert" class="mr-2">
+  <label for="recert">Include Recertification Campaign</label>
+</div>
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
     </form>
 
@@ -70,6 +70,12 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      const recertBlock = document.getElementById("recertBlock");
+      const packageType = document.getElementById("packageType");
+      packageType.addEventListener("change", () => {
+        recertBlock.style.display = packageType.value === "accessGov" ? "flex" : "none";
+      });
+      recertBlock.style.display = packageType.value === "accessGov" ? "flex" : "none";
       const $ = (id) => document.getElementById(id);
 
       const PRICING_GRID = {
@@ -79,8 +85,6 @@
   { max: 2000, price: 2.400 },
   { max: 3000, price: 1.800 },
   { max: 6500, price: 1.200 },
-  { max: 7000, price: 0.800 },
-  { max: 7000, price: 0.800 },
   { max: 7500, price: 0.800 },
   { max: 10000, price: 0.640 },
   { max: 15000, price: 0.512 },
@@ -208,7 +212,7 @@ analyticsAccessGov: [
         const wuCount = pkg === "accessGov" ? 35 : 0;
         const srPrice = wuCount * 1350;
 
-        const discount = 0;
+        const discount = years === 2 ? 0.05 : years === 3 ? 0.08 : years === 5 ? 0.12 : 0;
         const discountedMonthly = (basePrice + upgradePrice + recertPrice) * (1 - discount);
         const yearlyPrice = discountedMonthly * 12;
         const totalSubscriptionPrice = yearlyPrice * years;
