@@ -33,7 +33,7 @@
         </select>
       </div>
       <div class="flex items-center">
-        <input type="checkbox" id="upgrade" name="upgrade" class="mr-2">
+        <input type="checkbox" id="upgrade" name="upgrade" class="mr-2" checked>
         <label for="upgrade">Include Analytics Editor Option</label>
       </div>
       <div class="flex items-center" id="recertBlock">
@@ -48,9 +48,10 @@
       <p id="packageText"></p>
       <p id="usersText"></p>
       <p id="durationText"></p>
+      <p id="monthlyPerUser"></p>
       <ul id="breakdownText" class="list-disc ml-6"></ul>
       <p id="subYearly" class="mt-2 font-semibold"></p>
-      <p id="srOneOff"></p>
+      <p id="srOneOff" class="mt-2"></p>
       <p id="totalYearly" class="text-lg font-bold mt-4"></p>
 
       <h3 class="mt-4 font-semibold">Included Features</h3>
@@ -67,6 +68,7 @@
       const packageType = document.getElementById("packageType");
       packageType.addEventListener("change", () => {
         recertBlock.style.display = packageType.value === "accessGov" ? "flex" : "none";
+        if (packageType.value !== "accessGov") document.getElementById("recert").checked = false;
       });
       recertBlock.style.display = packageType.value === "accessGov" ? "flex" : "none";
       const $ = (id) => document.getElementById(id);
@@ -171,6 +173,11 @@
         minimumFractionDigits: 2
       }).format;
 
+      const fmtNum = new Intl.NumberFormat("de-DE", {
+        minimumFractionDigits: 3,
+        maximumFractionDigits: 3
+      }).format;
+
       const FEATURES = {
         access: ["Single Sign-On (SSO)", "Multi-Factor Authentication (MFA)"],
         accessGov: [
@@ -198,6 +205,8 @@
         const totalSubscriptionPrice = yearlyPrice * years;
         const totalPrice = totalSubscriptionPrice;
 
+        const monthlyPerUser = yearlyPrice / 12 / users;
+
         return {
           basePrice,
           upgradePrice,
@@ -209,7 +218,8 @@
           unitUpg,
           unitRecert,
           years,
-          discount
+          discount,
+          monthlyPerUser
         };
       }
 
@@ -217,6 +227,7 @@
         $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${upgrade ? " + Analytics Editor Option" : ""}${isRecert ? " + Recertification Campaign" : ""}`;
         $("usersText").textContent = `Number of Users: ${users}`;
         $("durationText").textContent = `Contract Duration: ${c.years} year${c.years > 1 ? "s" : ""}`;
+        $("monthlyPerUser").textContent = `Customer monthly fee per user (ordered ${users} users): ${fmt(c.monthlyPerUser)}`;
 
         const list = [];
         list.push(`Base Subscription: ${fmt(c.unitBase)}/user/mo × ${users} users = ${fmt(c.basePrice)}`);
@@ -224,9 +235,9 @@
         if (isRecert) list.push(`Recertification Campaign: ${fmt(c.unitRecert)}/user/mo × ${users} users = ${fmt(c.recertPrice)}`);
 
         $("breakdownText").innerHTML = list.map((x) => `<li>${x}</li>`).join("");
-        $("subYearly").textContent = `Subscription price (${c.years} year${c.years > 1 ? "s" : ""}): ${fmt(c.yearlyPrice)} × ${c.years} = ${fmt(c.totalSubscriptionPrice)}`;
-        $("srOneOff").textContent = "";
-        $("totalYearly").textContent = `TOTAL price over ${c.years} year${c.years > 1 ? "s" : ""}: ${fmt(c.totalPrice)}`;
+        $("subYearly").textContent = `Software as a service subscription ${c.years}-year subscription for ${users} users, price in EUR excluding taxes: ${fmt(c.totalSubscriptionPrice)}`;
+        $("srOneOff").textContent = `Pack of 0 W.U. for Software as a service complementary assistance, price in EUR excluding taxes: ${fmt(0)}`;
+        $("totalYearly").textContent = `Total price in EUR excluding taxes, for ${c.years}-year subscription to software as a service for ${users} users: ${fmt(c.totalPrice)}`;
 
         const feats = [
           ...FEATURES[pkg],
@@ -237,9 +248,6 @@
 
         const notes = [
           "All prices shown are in EUR, excluding taxes.",
-          "Subscription billed annually in advance.",
-          "Standard business-hours support included.",
-          c.discount > 0 ? `Multi-year discount applied: ${(c.discount * 100).toFixed(0)}%` : "No discount applied for 1-year contracts.",
           `<a href=\"https://customercare.evidian.com/space/ITS/384991233/IDaaS%2FOrbion+Terms+of+Services+-+Evidian\" target=\"_blank\" class=\"text-blue-700 underline\">View Orbion Terms of Services</a>`
         ];
         $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
