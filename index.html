@@ -1,63 +1,239 @@
-<!-- Orbion Pricing Calculator Widget -->
-<form id="costForm" class="space-y-4">
-  <!-- Package selection -->
-  <div>
-    <label for="packageType" class="block font-medium">Package</label>
-    <select id="packageType" name="packageType" class="border rounded p-2 w-full">
-      <option value="access">Orbion Access</option>
-      <option value="accessGov">Orbion Access &amp; Governance</option>
-    </select>
-  </div>
+<!--
+  Orbion Pricing Calculator – Combined HTML + JS (FULL)
+  ----------------------------------------------------
+  • Drop this single file into any GitHub repo, static site, or WP theme and it will run standalone.
+  • Uses Tailwind via CDN for quick styling.
+  • Access‑only tier prices are PLACEHOLDERS – swap with official grid when final.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orbion Price Calculator</title>
+  <script defer></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 p-6">
+  <main class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow">
+    <h1 class="text-xl font-bold mb-4">Orbion Price Calculator</h1>
+    <form id="costForm" class="space-y-4">
+      <div>
+        <label for="packageType" class="block font-medium">Package</label>
+        <select id="packageType" name="packageType" class="border rounded p-2 w-full">
+          <option value="access">Orbion Access</option>
+          <option value="accessGov">Orbion Access & Governance</option>
+        </select>
+      </div>
+      <div>
+        <label for="numUsers" class="block font-medium">Number of Users</label>
+        <input type="number" id="numUsers" name="numUsers" class="border rounded p-2 w-full" min="1" required>
+      </div>
+      <div>
+        <label for="contractYears" class="block font-medium">Contract Duration (Years)</label>
+        <select id="contractYears" name="contractYears" class="border rounded p-2 w-full">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+      </div>
+      <div class="flex items-center">
+        <input type="checkbox" id="upgrade" name="upgrade" class="mr-2">
+        <label for="upgrade">Include Analytics Editor Option</label>
+      </div>
+      <div class="flex items-center">
+        <input type="checkbox" id="recert" name="recert" class="mr-2">
+        <label for="recert">Include Recertification Campaign</label>
+      </div>
+      <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
+    </form>
 
-  <!-- Users -->
-  <div>
-    <label for="numUsers" class="block font-medium">Number of users</label>
-    <input type="number" id="numUsers" name="numUsers" min="1" class="border rounded p-2 w-full" required />
-  </div>
+    <section id="result" class="mt-6 hidden">
+      <h2 class="text-lg font-bold">Pricing Summary</h2>
+      <p id="packageText"></p>
+      <p id="usersText"></p>
+      <p id="durationText"></p>
+      <ul id="breakdownText" class="list-disc ml-6"></ul>
+      <p id="subYearly" class="mt-2 font-semibold"></p>
+      <p id="srOneOff"></p>
+      <p id="totalYearly" class="text-lg font-bold mt-4"></p>
 
-  <!-- Analytics option -->
-  <div class="flex items-center space-x-2">
-    <input type="checkbox" id="upgrade" name="upgrade" />
-    <label for="upgrade">Include Analytics Editor option</label>
-  </div>
+      <h3 class="mt-4 font-semibold">Included Features</h3>
+      <ul id="featuresText" class="list-disc ml-6"></ul>
 
-  <!-- Recertification option -->
-  <div class="flex items-center space-x-2">
-    <input type="checkbox" id="recert" name="recert" />
-    <label for="recert">Include Recertification campaign</label>
-  </div>
+      <h3 class="mt-4 font-semibold">Notes</h3>
+      <ul id="notesText" class="list-disc ml-6"></ul>
+    </section>
+  </main>
 
-  <!-- Contract duration -->
-  <div>
-    <label for="contractYears" class="block font-medium">Contract duration</label>
-    <select id="contractYears" name="contractYears" class="border rounded p-2 w-full">
-      <option value="1">1 year</option>
-      <option value="2">2 years (-5%)</option>
-      <option value="3">3 years (-8%)</option>
-      <option value="5">5 years (-12%)</option>
-    </select>
-  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const $ = (id) => document.getElementById(id);
 
-  <!-- Submit -->
-  <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
-</form>
+      const PRICING_GRID = {
+        access: [
+          { max: 500, price: 2.50 },
+          { max: 1000, price: 2.10 },
+          { max: Infinity, price: 1.00 }
+        ],
+        accessGov: [
+          { max: 100, price: 25.263 },
+          { max: 500, price: 21.660 },
+          { max: 1000, price: 13.900 },
+          { max: 2000, price: 9.750 },
+          { max: 3000, price: 7.380 },
+          { max: 5000, price: 5.530 },
+          { max: 7500, price: 4.900 },
+          { max: 10000, price: 4.200 },
+          { max: 15000, price: 3.370 },
+          { max: 20000, price: 2.730 },
+          { max: 25000, price: 2.420 },
+          { max: 50000, price: 1.610 }
+        ],
+        analytics: [
+          { max: 100, price: 1.775 },
+          { max: 500, price: 1.570 },
+          { max: 1000, price: 0.990 },
+          { max: 2000, price: 0.740 },
+          { max: 3000, price: 0.560 },
+          { max: 5000, price: 0.430 },
+          { max: 7500, price: 0.410 },
+          { max: 10000, price: 0.360 },
+          { max: 15000, price: 0.290 },
+          { max: 20000, price: 0.230 },
+          { max: 25000, price: 0.200 },
+          { max: 50000, price: 0.130 }
+        ],
+        recert: [
+          { max: 100, price: 3.550 },
+          { max: 500, price: 3.130 },
+          { max: 1000, price: 1.980 },
+          { max: 2000, price: 1.470 },
+          { max: 3000, price: 1.120 },
+          { max: 5000, price: 0.870 },
+          { max: 7500, price: 0.820 },
+          { max: 10000, price: 0.710 },
+          { max: 15000, price: 0.570 },
+          { max: 20000, price: 0.460 },
+          { max: 25000, price: 0.400 },
+          { max: 50000, price: 0.270 }
+        ]
+      };
 
-<!-- Results -->
-<div id="result" class="hidden mt-8 space-y-4">
-  <h2 class="text-xl font-semibold">Quotation</h2>
-  <p id="packageText"></p>
-  <p id="usersText"></p>
-  <p id="durationText"></p>
+      function getTieredPrice(table, users) {
+        for (let i = 0; i < table.length; i++) {
+          if (users <= table[i].max) return table[i].price ?? 0;
+        }
+        return table[table.length - 1].price;
+      }
 
-  <ul id="breakdownText" class="list-disc pl-5 space-y-1"></ul>
+      const fmt = new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 2
+      }).format;
 
-  <p id="subYearly" class="font-medium"></p>
-  <p id="srOneOff" class="font-medium"></p>
-  <p id="totalYearly" class="font-bold text-lg"></p>
+      const FEATURES = {
+        access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
+        accessGov: [
+          "Single Sign‑On (SSO)",
+          "Multi‑Factor Authentication (MFA)",
+          "Identity Governance & Administration (IGA)"
+        ],
+        analytics: ["Analytics Editor option"],
+        srPack: [
+          "Service Integration Starter Pack (35 WU)",
+          "Integration kick-off workshop",
+          "SSO template configuration",
+          "Role modeling baseline",
+          "Support for up to 5 applications onboarding"
+        ],
+        recert: ["Periodic Access Recertification Campaign"]
+      };
 
-  <h3 class="font-semibold">Included features</h3>
-  <ul id="featuresText" class="list-disc pl-5 space-y-1"></ul>
+      function calculate(users, pkg, upgrade, years, isRecert) {
+        const unitBase = getTieredPrice(PRICING_GRID[pkg], users);
+        const unitUpg = getTieredPrice(PRICING_GRID.analytics, users);
+        const unitRecert = getTieredPrice(PRICING_GRID.recert, users);
 
-  <h3 class="font-semibold">Notes</h3>
-  <ul id="notesText" class="list-disc pl-5 space-y-1"></ul>
-</div>
+        const basePrice = users * unitBase;
+        const upgradePrice = upgrade ? users * unitUpg : 0;
+        const recertPrice = isRecert ? users * unitRecert : 0;
+        const wuCount = pkg === "accessGov" ? 35 : 0;
+        const srPrice = wuCount * 1350;
+
+        const discount = years === 2 ? 0.05 : years === 3 ? 0.08 : years === 5 ? 0.12 : 0;
+        const discountedMonthly = (basePrice + upgradePrice + recertPrice) * (1 - discount);
+        const yearlyPrice = discountedMonthly * 12;
+        const totalSubscriptionPrice = yearlyPrice * years;
+        const totalPrice = totalSubscriptionPrice + srPrice;
+
+        return {
+          basePrice,
+          upgradePrice,
+          recertPrice,
+          srPrice,
+          yearlyPrice,
+          totalSubscriptionPrice,
+          totalPrice,
+          wuCount,
+          unitBase,
+          unitUpg,
+          unitRecert,
+          years
+        };
+      }
+
+      function render(users, pkg, upgrade, isRecert, c) {
+        $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${upgrade ? " + Analytics Editor Option" : ""}${isRecert ? " + Recertification Campaign" : ""}`;
+        $("usersText").textContent = `Number of Users: ${users}`;
+        $("durationText").textContent = `Contract Duration: ${c.years} year${c.years > 1 ? "s" : ""}`;
+
+        const list = [];
+        list.push(`Base Subscription: ${fmt(c.unitBase)}/user/mo × ${users} users = ${fmt(c.basePrice)}`);
+        if (upgrade) list.push(`Analytics Editor Option: ${fmt(c.unitUpg)}/user/mo × ${users} users = ${fmt(c.upgradePrice)}`);
+        if (isRecert) list.push(`Recertification Campaign: ${fmt(c.unitRecert)}/user/mo × ${users} users = ${fmt(c.recertPrice)}`);
+        if (c.wuCount > 0) list.push(`Service Integration Starter Pack: 35 WU × €1350 = ${fmt(c.srPrice)}`);
+
+        $("breakdownText").innerHTML = list.map((x) => `<li>${x}</li>`).join("");
+        $("subYearly").textContent = `Subscription price (${c.years} year${c.years > 1 ? "s" : ""}): ${fmt(c.totalSubscriptionPrice)}`;
+        $("srOneOff").textContent = `Complementary service price (WU): ${fmt(c.srPrice)}`;
+        $("totalYearly").textContent = `TOTAL price over ${c.years} year${c.years > 1 ? "s" : ""}: ${fmt(c.totalPrice)}`;
+
+        const feats = [
+          ...FEATURES[pkg],
+          ...(upgrade ? FEATURES.analytics : []),
+          ...(c.wuCount > 0 ? FEATURES.srPack : []),
+          ...(isRecert ? FEATURES.recert : [])
+        ];
+        $("featuresText").innerHTML = feats.map((f) => `<li>${f}</li>`).join("");
+
+        const notes = [
+          "All prices shown are in EUR, excluding taxes.",
+          "Subscription billed annually in advance.",
+          "Complementary service‑request packs invoiced upon delivery.",
+          "Standard business‑hours support included.",
+          `<a href=\"https://customercare.evidian.com/space/ITS/384991233/IDaaS%2FOrbion+Terms+of+Services+-+Evidian\" target=\"_blank\" class=\"text-blue-700 underline\">View Orbion Terms of Services</a>`
+        ];
+        $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
+        $("result").classList.remove("hidden");
+      }
+
+      $("costForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const users = parseInt($("numUsers").value, 10) || 0;
+        if (users < 1) return alert("Number of users must be at least 1");
+        const pkg = $("packageType").value;
+        if (pkg === "accessGov" && users < 100) return alert("Orbion Access & Governance starts at 100 users.");
+        const upgrade = $("upgrade").checked;
+        const isRecert = $("recert").checked;
+        const years = parseInt($("contractYears").value, 10) || 1;
+        const costs = calculate(users, pkg, upgrade, years, isRecert);
+        render(users, pkg, upgrade, isRecert, costs);
+      });
+    });
+  </script>
+</body>
+</html>
