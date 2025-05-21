@@ -1,10 +1,3 @@
-<!--
-  Orbion Pricing Calculator – Combined HTML + JS (FULL)
-  ----------------------------------------------------
-  • Drop this single file into any GitHub repo, static site, or WP theme and it will run standalone.
-  • Uses Tailwind via CDN for quick styling.
-  • Access‑only tier prices are PLACEHOLDERS – swap with official grid when final.
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -44,9 +37,9 @@
         <label for="upgrade">Include Analytics Editor Option</label>
       </div>
       <div class="flex items-center" id="recertBlock">
-  <input type="checkbox" id="recert" name="recert" class="mr-2">
-  <label for="recert">Include Recertification Campaign</label>
-</div>
+        <input type="checkbox" id="recert" name="recert" class="mr-2">
+        <label for="recert">Include Recertification Campaign</label>
+      </div>
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
     </form>
 
@@ -80,94 +73,89 @@
 
       const PRICING_GRID = {
         access: [
-  { max: 500, price: 6.000 },
-  { max: 1000, price: 4.000 },
-  { max: 2000, price: 2.400 },
-  { max: 3000, price: 1.800 },
-  { max: 6500, price: 1.200 },
-  { max: 7500, price: 0.800 },
-  { max: 12000, price: 0.640 },
-  { max: 15000, price: 0.512 },
-  { max: 20000, price: 0.440 },
-  { max: 25000, price: 0.400 },
-  { max: 50000, price: 0.280 },
-  { max: 100000, price: 0.200 },
-  { max: 200000, price: 0.120 },
-  { max: 500000, price: 0.080 },
-  { max: 1000000, price: 0.060 }
-],
+          { max: 25, price: 1.200 },
+          { max: 100, price: 0.950 },
+          { max: 500, price: 0.750 },
+          { max: 1000, price: 0.650 },
+          { max: 2500, price: 0.600 },
+          { max: 5000, price: 0.550 },
+          { max: 10000, price: 0.525 },
+          { max: 15000, price: 0.512 },
+          { max: 25000, price: 0.500 },
+          { max: 50000, price: 0.475 },
+          { max: 1000000, price: 0.450 }
+        ],
         accessGov: [
-  { max: 100, price: 25.263 },
-  { max: 500, price: 21.660 },
-  { max: 1000, price: 13.900 },
-  { max: 1200, price: 13.900 },
-  { max: 2000, price: 9.750 },
-  { max: 3000, price: 7.380 },
-  { max: 8000, price: 4.900 },
-  { max: 9000, price: 4.900 },
-  { max: 10000, price: 4.200 },
-  { max: 15000, price: 3.370 },
-  { max: 20000, price: 2.730 },
-  { max: 25000, price: 2.420 },
-  { max: 50000, price: 1.610 },
-  { max: 100000, price: 1.290 },
-  { max: 200000, price: 0.890 },
-  { max: 500000, price: 0.560 },
-  { max: 1000000, price: 0.390 }
-],
+          { max: 100, price: 25.263 },
+          { max: 500, price: 21.660 },
+          { max: 1000, price: 13.900 },
+          { max: 2000, price: 9.750 },
+          { max: 3000, price: 7.380 },
+          { max: 5000, price: 5.530 },
+          { max: 7500, price: 4.900 },
+          { max: 10000, price: 4.200 },
+          { max: 15000, price: 3.370 },
+          { max: 20000, price: 2.730 },
+          { max: 25000, price: 2.420 },
+          { max: 50000, price: 1.610 },
+          { max: 100000, price: 1.290 },
+          { max: 200000, price: 0.890 },
+          { max: 500000, price: 0.560 },
+          { max: 1000000, price: 0.390 }
+        ],
         analyticsAccess: [
-  { max: 500, price: 0.600 },
-  { max: 1000, price: 0.400 },
-  { max: 2000, price: 0.240 },
-  { max: 3000, price: 0.180 },
-  { max: 5000, price: 0.120 },
-  { max: 7500, price: 0.080 },
-  { max: 10000, price: 0.064 },
-  { max: 15000, price: 0.051 },
-  { max: 20000, price: 0.044 },
-  { max: 25000, price: 0.040 },
-  { max: 50000, price: 0.028 },
-  { max: 100000, price: 0.020 },
-  { max: 200000, price: 0.012 },
-  { max: 500000, price: 0.008 },
-  { max: 1000000, price: 0.006 }
-],
-analyticsAccessGov: [
-  { max: 100, price: 1.775 },
-  { max: 500, price: 1.570 },
-  { max: 1000, price: 0.990 },
-  { max: 2000, price: 0.740 },
-  { max: 3000, price: 0.560 },
-  { max: 5000, price: 0.430 },
-  { max: 7500, price: 0.410 },
-  { max: 10000, price: 0.360 },
-  { max: 15000, price: 0.290 },
-  { max: 20000, price: 0.230 },
-  { max: 25000, price: 0.200 },
-  { max: 50000, price: 0.130 },
-  { max: 100000, price: 0.110 },
-  { max: 200000, price: 0.080 },
-  { max: 500000, price: 0.050 },
-  { max: 1000000, price: 0.030 }
-],
+          { max: 500, price: 0.600 },
+          { max: 1000, price: 0.400 },
+          { max: 2000, price: 0.240 },
+          { max: 3000, price: 0.180 },
+          { max: 5000, price: 0.120 },
+          { max: 7500, price: 0.080 },
+          { max: 10000, price: 0.064 },
+          { max: 15000, price: 0.051 },
+          { max: 20000, price: 0.044 },
+          { max: 25000, price: 0.040 },
+          { max: 50000, price: 0.028 },
+          { max: 100000, price: 0.020 },
+          { max: 200000, price: 0.012 },
+          { max: 500000, price: 0.008 },
+          { max: 1000000, price: 0.006 }
+        ],
+        analyticsAccessGov: [
+          { max: 100, price: 1.775 },
+          { max: 500, price: 1.570 },
+          { max: 1000, price: 0.990 },
+          { max: 2000, price: 0.740 },
+          { max: 3000, price: 0.560 },
+          { max: 5000, price: 0.430 },
+          { max: 7500, price: 0.410 },
+          { max: 10000, price: 0.360 },
+          { max: 15000, price: 0.290 },
+          { max: 20000, price: 0.230 },
+          { max: 25000, price: 0.200 },
+          { max: 50000, price: 0.130 },
+          { max: 100000, price: 0.110 },
+          { max: 200000, price: 0.080 },
+          { max: 500000, price: 0.050 },
+          { max: 1000000, price: 0.030 }
+        ],
         recert: [
-  { max: 100, price: 3.550 },
-  { max: 500, price: 3.130 },
-  { max: 1000, price: 1.980 },
-  { max: 2000, price: 1.470 },
-  { max: 3000, price: 1.120 },
-  { max: 5000, price: 0.870 },
-  { max: 7500, price: 0.820 },
-  { max: 10000, price: 0.710 },
-  { max: 15000, price: 0.570 },
-  { max: 20000, price: 0.460 },
-  { max: 25000, price: 0.400 },
-  { max: 50000, price: 0.270 },
-  { max: 100000, price: 0.220 },
-  { max: 200000, price: 0.150 },
-  { max: 500000, price: 0.100 },
-  { max: 1000000, price: 0.065 }
-]
+          { max: 100, price: 3.550 },
+          { max: 500, price: 3.130 },
+          { max: 1000, price: 1.980 },
+          { max: 2000, price: 1.470 },
+          { max: 3000, price: 1.120 },
+          { max: 5000, price: 0.870 },
+          { max: 7500, price: 0.820 },
+          { max: 10000, price: 0.710 },
+          { max: 15000, price: 0.570 },
+          { max: 20000, price: 0.460 },
+          { max: 25000, price: 0.400 },
+          { max: 50000, price: 0.270 },
+          { max: 100000, price: 0.220 },
+          { max: 200000, price: 0.150 },
+          { max: 500000, price: 0.100 },
+          { max: 1000000, price: 0.065 }
+        ]
       };
 
       function getTieredPrice(table, users) {
@@ -177,27 +165,20 @@ analyticsAccessGov: [
         return table[table.length - 1].price;
       }
 
-      const fmt = new Intl.NumberFormat("en-US", {
+      const fmt = new Intl.NumberFormat("de-DE", {
         style: "currency",
         currency: "EUR",
         minimumFractionDigits: 2
       }).format;
 
       const FEATURES = {
-        access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
+        access: ["Single Sign-On (SSO)", "Multi-Factor Authentication (MFA)"],
         accessGov: [
-          "Single Sign‑On (SSO)",
-          "Multi‑Factor Authentication (MFA)",
+          "Single Sign-On (SSO)",
+          "Multi-Factor Authentication (MFA)",
           "Identity Governance & Administration (IGA)"
         ],
         analytics: ["Analytics Editor option"],
-        srPack: [
-          "Service Integration Starter Pack (35 WU)",
-          "Integration kick-off workshop",
-          "SSO template configuration",
-          "Role modeling baseline",
-          "Support for up to 5 applications onboarding"
-        ],
         recert: ["Periodic Access Recertification Campaign"]
       };
 
@@ -209,29 +190,26 @@ analyticsAccessGov: [
         const basePrice = users * unitBase;
         const upgradePrice = upgrade ? users * unitUpg : 0;
         const recertPrice = (pkg === "accessGov" && isRecert) ? users * unitRecert : 0;
-        const wuCount = pkg === "accessGov" ? 35 : 0;
-        const srPrice = wuCount * 1350;
 
         const discount = years === 2 ? 0.05 : years === 3 ? 0.08 : years === 5 ? 0.12 : 0;
         const monthlyTotal = basePrice + upgradePrice + recertPrice;
         const discountedMonthly = monthlyTotal * (1 - discount);
         const yearlyPrice = discountedMonthly * 12;
         const totalSubscriptionPrice = yearlyPrice * years;
-        const totalPrice = totalSubscriptionPrice + srPrice;
+        const totalPrice = totalSubscriptionPrice;
 
         return {
           basePrice,
           upgradePrice,
           recertPrice,
-          srPrice,
           yearlyPrice,
           totalSubscriptionPrice,
           totalPrice,
-          wuCount,
           unitBase,
           unitUpg,
           unitRecert,
-          years
+          years,
+          discount
         };
       }
 
@@ -244,17 +222,15 @@ analyticsAccessGov: [
         list.push(`Base Subscription: ${fmt(c.unitBase)}/user/mo × ${users} users = ${fmt(c.basePrice)}`);
         if (upgrade) list.push(`Analytics Editor Option: ${fmt(c.unitUpg)}/user/mo × ${users} users = ${fmt(c.upgradePrice)}`);
         if (isRecert) list.push(`Recertification Campaign: ${fmt(c.unitRecert)}/user/mo × ${users} users = ${fmt(c.recertPrice)}`);
-        if (c.wuCount > 0) list.push(`Service Integration Starter Pack: 35 WU × €1350 = ${fmt(c.srPrice)}`);
 
         $("breakdownText").innerHTML = list.map((x) => `<li>${x}</li>`).join("");
         $("subYearly").textContent = `Subscription price (${c.years} year${c.years > 1 ? "s" : ""}): ${fmt(c.yearlyPrice)} × ${c.years} = ${fmt(c.totalSubscriptionPrice)}`;
-        $("srOneOff").textContent = `Complementary service price (WU): ${fmt(c.srPrice)}`;
+        $("srOneOff").textContent = "";
         $("totalYearly").textContent = `TOTAL price over ${c.years} year${c.years > 1 ? "s" : ""}: ${fmt(c.totalPrice)}`;
 
         const feats = [
           ...FEATURES[pkg],
           ...(upgrade ? FEATURES.analytics : []),
-          ...(c.wuCount > 0 ? FEATURES.srPack : []),
           ...(isRecert ? FEATURES.recert : [])
         ];
         $("featuresText").innerHTML = feats.map((f) => `<li>${f}</li>`).join("");
@@ -262,8 +238,8 @@ analyticsAccessGov: [
         const notes = [
           "All prices shown are in EUR, excluding taxes.",
           "Subscription billed annually in advance.",
-          "Complementary service‑request packs invoiced upon delivery.",
-          "Standard business‑hours support included.",
+          "Standard business-hours support included.",
+          c.discount > 0 ? `Multi-year discount applied: ${(c.discount * 100).toFixed(0)}%` : "No discount applied for 1-year contracts.",
           `<a href=\"https://customercare.evidian.com/space/ITS/384991233/IDaaS%2FOrbion+Terms+of+Services+-+Evidian\" target=\"_blank\" class=\"text-blue-700 underline\">View Orbion Terms of Services</a>`
         ];
         $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
@@ -275,6 +251,7 @@ analyticsAccessGov: [
         const users = parseInt($("numUsers").value, 10) || 0;
         if (users < 1) return alert("Number of users must be at least 1");
         const pkg = $("packageType").value;
+        if (pkg === "access" && users < 25) return alert("Orbion Access starts at 25 users.");
         if (pkg === "accessGov" && users < 100) return alert("Orbion Access & Governance starts at 100 users.");
         const upgrade = $("upgrade").checked;
         const isRecert = $("recert").checked;
