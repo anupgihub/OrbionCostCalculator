@@ -1,9 +1,17 @@
+<!--
+  Orbion Pricing Calculator – Combined HTML + JS (FULL)
+  ----------------------------------------------------
+  • Drop this single file into any GitHub repo, static site, or WP theme and it will run standalone.
+  • Uses Tailwind via CDN for quick styling.
+  • Access‑only tier prices are PLACEHOLDERS – swap with official grid when final.
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Orbion Price Calculator</title>
+  <script defer></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 p-6">
@@ -13,7 +21,6 @@
       <div>
         <label for="packageType" class="block font-medium">Package</label>
         <select id="packageType" name="packageType" class="border rounded p-2 w-full">
-          <option value="push">Push Authenticator</option>
           <option value="access">Orbion Access</option>
           <option value="accessGov">Orbion Access & Governance</option>
         </select>
@@ -33,32 +40,24 @@
         </select>
       </div>
       <div class="flex items-center">
-        <input type="checkbox" id="analytics" name="analytics" class="mr-2">
-        <label for="analytics">Include Analytics Editor Option</label>
+        <input type="checkbox" id="upgrade" name="upgrade" class="mr-2">
+        <label for="upgrade">Include Analytics Editor Option</label>
       </div>
       <div class="flex items-center" id="recertBlock">
-        <input type="checkbox" id="recert" name="recert" class="mr-2">
-        <label for="recert">Include Recertification Campaign</label>
-      </div>
-      <div class="flex items-center" id="nodeBlock">
-        <input type="checkbox" id="node" name="node" class="mr-2">
-        <label for="node">Include Additional Node</label>
-      </div>
-      <div class="flex items-center">
-        <input type="checkbox" id="starterPack" name="starterPack" class="mr-2">
-        <label for="starterPack">Include Starter Pack (35 WU)</label>
-      </div>
+  <input type="checkbox" id="recert" name="recert" class="mr-2">
+  <label for="recert">Include Recertification Campaign</label>
+</div>
       <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Calculate</button>
     </form>
 
     <section id="result" class="mt-6 hidden">
-      <h2 class="text dedica-lg font-bold">Pricing Summary</h2>
+      <h2 class="text-lg font-bold">Pricing Summary</h2>
       <p id="packageText"></p>
       <p id="usersText"></p>
       <p id="durationText"></p>
       <ul id="breakdownText" class="list-disc ml-6"></ul>
       <p id="subYearly" class="mt-2 font-semibold"></p>
-      <p id="srOneOff" class="mt-2"></p>
+      <p id="srOneOff"></p>
       <p id="totalYearly" class="text-lg font-bold mt-4"></p>
 
       <h3 class="mt-4 font-semibold">Included Features</h3>
@@ -71,146 +70,111 @@
 
   <script>
     document.addEventListener("DOMContentLoaded", function () {
+      const recertBlock = document.getElementById("recertBlock");
+      const packageType = document.getElementById("packageType");
+      packageType.addEventListener("change", () => {
+        recertBlock.style.display = packageType.value === "accessGov" ? "flex" : "none";
+      });
+      recertBlock.style.display = packageType.value === "accessGov" ? "flex" : "none";
       const $ = (id) => document.getElementById(id);
-      const recertBlock = $("recertBlock");
-      const nodeBlock = $("nodeBlock");
-      const packageType = $("packageType");
-
-      // Show/hide recert and node options based on package selection
-      function updateFormVisibility() {
-        const pkg = packageType.value;
-        recertBlock.style.display = pkg === "accessGov" ? "flex" : "none";
-        nodeBlock.style.display = pkg === "push" ? "none" : "flex";
-        if (pkg !== "accessGov") $("recert").checked = false;
-        if (pkg === "push") $("node").checked = false;
-      }
-
-      packageType.addEventListener("change", updateFormVisibility);
-      updateFormVisibility();
 
       const PRICING_GRID = {
-        push: [
-          { max: 100, price: 2.00 },
-          { max: 500, price: 1.60 },
-          { max: 1000, price: 1.24 },
-          { max: 2000, price: 0.94 },
-          { max: 3000, price: 0.70 },
-          { max: 5000, price: 0.60 },
-          { max: 7500, price: 0.46 },
-          { max: 10000, price: 0.38 },
-          { max: 15000, price: 0.30 },
-          { max: 20000, price: 0.24 },
-          { max: 25000, price: 0.20 },
-          { max: 50000, price: 0.14 },
-          { max: 100000, price: 0.10 },
-          { max: 200000, price: 0.06 }
-        ],
         access: [
-          { max: 500, price: 6.00 },
-          { max: 1000, price: 4.00 },
-          { max: 2000, price: 2.40 },
-          { max: 3000, price: 1.80 },
-          { max: 5000, price: 1.20 },
-          { max: 7500, price: 0.80 },
-          { max: 10000, price: 0.64 },
-          { max: 15000, price: 0.512 },
-          { max: 20000, price: 0.44 },
-          { max: 25000, price: 0.40 },
-          { max: 50000, price: 0.28 },
-          { max: 100000, price: 0.20 },
-          { max: 200000, price: 0.12 },
-          { max: 500000, price: 0.08 },
-          { max: 1000000, price: 0.06 }
-        ],
+  { max: 500, price: 6.000 },
+  { max: 1000, price: 4.000 },
+  { max: 2000, price: 2.400 },
+  { max: 3000, price: 1.800 },
+  { max: 6500, price: 1.200 },
+  { max: 7500, price: 0.800 },
+  { max: 12000, price: 0.640 },
+  { max: 15000, price: 0.512 },
+  { max: 20000, price: 0.440 },
+  { max: 25000, price: 0.400 },
+  { max: 50000, price: 0.280 },
+  { max: 100000, price: 0.200 },
+  { max: 200000, price: 0.120 },
+  { max: 500000, price: 0.080 },
+  { max: 1000000, price: 0.060 }
+],
         accessGov: [
-          { max: 100, price: 25.263 },
-          { max: 500, price: 21.66 },
-          { max: 1000, price: 13.90 },
-          { max: 2000, price: 9.75 },
-          { max: 3000, price: 7.38 },
-          { max: 5000, price: 5.53 },
-          { max: 7500, price: 4.90 },
-          { max: 10000, price: 4.20 },
-          { max: 15000, price: 3.37 },
-          { max: 20000, price: 2.73 },
-          { max: 25000, price: 2.42 },
-          { max: 50000, price: 1.61 },
-          { max: 100000, price: 1.29 },
-          { max: 200000, price: 0.89 },
-          { max: 500000, price: 0.56 },
-          { max: 1000000, price: 0.39 }
-        ],
+  { max: 100, price: 25.263 },
+  { max: 500, price: 21.660 },
+  { max: 1000, price: 13.900 },
+  { max: 1200, price: 13.900 },
+  { max: 2000, price: 9.750 },
+  { max: 3000, price: 7.380 },
+  { max: 8000, price: 4.900 },
+  { max: 9000, price: 4.900 },
+  { max: 10000, price: 4.200 },
+  { max: 15000, price: 3.370 },
+  { max: 20000, price: 2.730 },
+  { max: 25000, price: 2.420 },
+  { max: 50000, price: 1.610 },
+  { max: 100000, price: 1.290 },
+  { max: 200000, price: 0.890 },
+  { max: 500000, price: 0.560 },
+  { max: 1000000, price: 0.390 }
+],
         analyticsAccess: [
-          { max: 500, price: 0.60 },
-          { max: 1000, price: 0.40 },
-          { max: 2000, price: 0.24 },
-          { max: 3000, price: 0.18 },
-          { max: 5000, price: 0.12 },
-          { max: 7500, price: 0.08 },
-          { max: 10000, price: 0.064 },
-          { max: 15000, price: 0.051 },
-          { max: 20000, price: 0.044 },
-          { max: 25000, price: 0.04 },
-          { max: 50000, price: 0.028 },
-          { max: 100000, price: 0.02 },
-          { max: 200000, price: 0.012 },
-          { max: 500000, price: 0.008 },
-          { max: 1000000, price: 0.006 }
-        ],
-        analyticsAccessGov: [
-          { max: 100, price: 1.775 },
-          { max: 500, price: 1.57 },
-          { max: 1000, price: 0.99 },
-          { max: 2000, price: 0.74 },
-          { max: 3000, price: 0.56 },
-          { max: 5000, price: 0.43 },
-          { max: 7500, price: 0.41 },
-          { max: 10000, price: 0.36 },
-          { max: 15000, price: 0.29 },
-          { max: 20000, price: 0.23 },
-          { max: 25000, price: 0.20 },
-          { max: 50000, price: 0.13 },
-          { max: 100000, price: 0.11 },
-          { max: 200000, price: 0.08 },
-          { max: 500000, price: 0.05 },
-          { max: 1000000, price: 0.03 }
-        ],
+  { max: 500, price: 0.600 },
+  { max: 1000, price: 0.400 },
+  { max: 2000, price: 0.240 },
+  { max: 3000, price: 0.180 },
+  { max: 5000, price: 0.120 },
+  { max: 7500, price: 0.080 },
+  { max: 10000, price: 0.064 },
+  { max: 15000, price: 0.051 },
+  { max: 20000, price: 0.044 },
+  { max: 25000, price: 0.040 },
+  { max: 50000, price: 0.028 },
+  { max: 100000, price: 0.020 },
+  { max: 200000, price: 0.012 },
+  { max: 500000, price: 0.008 },
+  { max: 1000000, price: 0.006 }
+],
+analyticsAccessGov: [
+  { max: 100, price: 1.775 },
+  { max: 500, price: 1.570 },
+  { max: 1000, price: 0.990 },
+  { max: 2000, price: 0.740 },
+  { max: 3000, price: 0.560 },
+  { max: 5000, price: 0.430 },
+  { max: 7500, price: 0.410 },
+  { max: 10000, price: 0.360 },
+  { max: 15000, price: 0.290 },
+  { max: 20000, price: 0.230 },
+  { max: 25000, price: 0.200 },
+  { max: 50000, price: 0.130 },
+  { max: 100000, price: 0.110 },
+  { max: 200000, price: 0.080 },
+  { max: 500000, price: 0.050 },
+  { max: 1000000, price: 0.030 }
+],
         recert: [
-          { max: 100, price: 3.55 },
-          { max: 500, price: 3.13 },
-          { max: 1000, price: 1.98 },
-          { max: 2000, price: 1.47 },
-          { max: 3000, price: 1.12 },
-          { max: 5000, price: 0.87 },
-          { max: 7500, price: 0.82 },
-          { max: 10000, price: 0.71 },
-          { max: 15000, price: 0.57 },
-          { max: 20000, price: 0.46 },
-          { max: 25000, price: 0.40 },
-          { max: 50000, price: 0.27 },
-          { max: 100000, price: 0.22 },
-          { max: 200000, price: 0.15 },
-          { max: 500000, price: 0.10 },
-          { max: 1000000, price: 0.065 }
-        ],
-        node: [
-          { max: 10000, price: 0.427 },
-          { max: 15000, price: 0.341 },
-          { max: 20000, price: 0.293 },
-          { max: 25000, price: 0.267 },
-          { max: 50000, price: 0.187 },
-          { max: 100000, price: 0.133 },
-          { max: 200000, price: 0.08 },
-          { max: 500000, price: 0.053 },
-          { max: 1000000, price: 0.04 }
-        ]
+  { max: 100, price: 3.550 },
+  { max: 500, price: 3.130 },
+  { max: 1000, price: 1.980 },
+  { max: 2000, price: 1.470 },
+  { max: 3000, price: 1.120 },
+  { max: 5000, price: 0.870 },
+  { max: 7500, price: 0.820 },
+  { max: 10000, price: 0.710 },
+  { max: 15000, price: 0.570 },
+  { max: 20000, price: 0.460 },
+  { max: 25000, price: 0.400 },
+  { max: 50000, price: 0.270 },
+  { max: 100000, price: 0.220 },
+  { max: 200000, price: 0.150 },
+  { max: 500000, price: 0.100 },
+  { max: 1000000, price: 0.065 }
+]
       };
 
       function getTieredPrice(table, users) {
-        for (let tier of table) {
-          if (users <= tier.max) return tier.price || 0;
+        for (let i = 0; i < table.length; i++) {
+          if (users <= table[i].max) return table[i].price ?? 0;
         }
-        return table[table.length - 1].price || 0;
+        return table[table.length - 1].price;
       }
 
       const fmt = new Intl.NumberFormat("en-US", {
@@ -220,103 +184,87 @@
       }).format;
 
       const FEATURES = {
-        push: ["Push Authentication for WAM"],
-        access: ["Single Sign-On (SSO)", "Multi-Factor Authentication (MFA)"],
+        access: ["Single Sign‑On (SSO)", "Multi‑Factor Authentication (MFA)"],
         accessGov: [
-          "Single Sign-On (SSO)",
-          "Multi-Factor Authentication (MFA)",
+          "Single Sign‑On (SSO)",
+          "Multi‑Factor Authentication (MFA)",
           "Identity Governance & Administration (IGA)"
         ],
-        analytics: ["Analytics Editor Option"],
-        recert: ["Periodic Access Recertification Campaign"],
-        node: ["Additional Node Support"],
-        starterPack: [
+        analytics: ["Analytics Editor option"],
+        srPack: [
           "Service Integration Starter Pack (35 WU)",
           "Integration kick-off workshop",
           "SSO template configuration",
           "Role modeling baseline",
           "Support for up to 5 applications onboarding"
-        ]
+        ],
+        recert: ["Periodic Access Recertification Campaign"]
       };
 
-      function calculate(users, pkg, analytics, recert, node, starterPack, years) {
+      function calculate(users, pkg, upgrade, years, isRecert) {
         const unitBase = getTieredPrice(PRICING_GRID[pkg], users);
-        const unitAnalytics = getTieredPrice(
-          pkg === "access" ? PRICING_GRID.analyticsAccess : PRICING_GRID.analyticsAccessGov,
-          users
-        );
+        const unitUpg = getTieredPrice(pkg === "access" ? PRICING_GRID.analyticsAccess : PRICING_GRID.analyticsAccessGov, users);
         const unitRecert = getTieredPrice(PRICING_GRID.recert, users);
-        const unitNode = getTieredPrice(PRICING_GRID.node, users);
 
         const basePrice = users * unitBase;
-        const analyticsPrice = analytics ? users * unitAnalytics : 0;
-        const recertPrice = (pkg === "accessGov" && recert) ? users * unitRecert : 0;
-        const nodePrice = (pkg !== "push" && node) ? users * unitNode : 0;
-        const wuCount = starterPack ? 35 : 0;
+        const upgradePrice = upgrade ? users * unitUpg : 0;
+        const recertPrice = (pkg === "accessGov" && isRecert) ? users * unitRecert : 0;
+        const wuCount = pkg === "accessGov" ? 35 : 0;
         const srPrice = wuCount * 1350;
 
         const discount = years === 2 ? 0.05 : years === 3 ? 0.08 : years === 5 ? 0.12 : 0;
-        const monthlySubTotal = basePrice + analyticsPrice + recertPrice + nodePrice;
-        const discountedMonthly = monthlySubTotal * (1 - discount);
+        const monthlyTotal = basePrice + upgradePrice + recertPrice;
+        const discountedMonthly = monthlyTotal * (1 - discount);
         const yearlyPrice = discountedMonthly * 12;
         const totalSubscriptionPrice = yearlyPrice * years;
         const totalPrice = totalSubscriptionPrice + srPrice;
 
         return {
           basePrice,
-          analyticsPrice,
+          upgradePrice,
           recertPrice,
-          nodePrice,
           srPrice,
           yearlyPrice,
           totalSubscriptionPrice,
           totalPrice,
           wuCount,
           unitBase,
-          unitAnalytics,
+          unitUpg,
           unitRecert,
-          unitNode,
           years
         };
       }
 
-      function render(users, pkg, analytics, recert, node, starterPack, c) {
-        const packageNames = {
-          push: "Push Authenticator",
-          access: "Orbion Access",
-          accessGov: "Orbion Access & Governance"
-        };
-        $("packageText").textContent = `Selected Package: ${packageNames[pkg]}${analytics ? " + Analytics Editor Option" : ""}${recert ? " + Recertification Campaign" : ""}${node ? " + Additional Node" : ""}${starterPack ? " + Starter Pack" : ""}`;
+      function render(users, pkg, upgrade, isRecert, c) {
+        $("packageText").textContent = `Selected Package: ${pkg === "access" ? "Orbion Access" : "Orbion Access & Governance"}${upgrade ? " + Analytics Editor Option" : ""}${isRecert ? " + Recertification Campaign" : ""}`;
         $("usersText").textContent = `Number of Users: ${users}`;
         $("durationText").textContent = `Contract Duration: ${c.years} year${c.years > 1 ? "s" : ""}`;
 
         const list = [];
-        list.push(`Base Subscription: ${fmt(c.unitBase)}/user/mo × ${users} users = ${fmt(c.basePrice)}/mo`);
-        if (analytics) list.push(`Analytics Editor Option: ${fmt(c.unitAnalytics)}/user/mo × ${users} users = ${fmt(c.analyticsPrice)}/mo`);
-        if (recert) list.push(`Recertification Campaign: ${fmt(c.unitRecert)}/user/mo × ${users} users = ${fmt(c.recertPrice)}/mo`);
-        if (node) list.push(`Additional Node: ${fmt(c.unitNode)}/user/mo × ${users} users = ${fmt(c.nodePrice)}/mo`);
+        list.push(`Base Subscription: ${fmt(c.unitBase)}/user/mo × ${users} users = ${fmt(c.basePrice)}`);
+        if (upgrade) list.push(`Analytics Editor Option: ${fmt(c.unitUpg)}/user/mo × ${users} users = ${fmt(c.upgradePrice)}`);
+        if (isRecert) list.push(`Recertification Campaign: ${fmt(c.unitRecert)}/user/mo × ${users} users = ${fmt(c.recertPrice)}`);
         if (c.wuCount > 0) list.push(`Service Integration Starter Pack: 35 WU × €1350 = ${fmt(c.srPrice)}`);
 
         $("breakdownText").innerHTML = list.map((x) => `<li>${x}</li>`).join("");
-        $("subYearly").textContent = `Subscription price (${c.years} year${c.years > 1 ? "s" : ""}): ${fmt(c.totalSubscriptionPrice)}`;
+        $("subYearly").textContent = `Subscription price (${c.years} year${c.years > 1 ? "s" : ""}): ${fmt(c.yearlyPrice)} × ${c.years} = ${fmt(c.totalSubscriptionPrice)}`;
         $("srOneOff").textContent = `Complementary service price (WU): ${fmt(c.srPrice)}`;
         $("totalYearly").textContent = `TOTAL price over ${c.years} year${c.years > 1 ? "s" : ""}: ${fmt(c.totalPrice)}`;
 
         const feats = [
           ...FEATURES[pkg],
-          ...(analytics ? FEATURES.analytics : []),
-          ...(recert ? FEATURES.recert : []),
-          ...(node ? FEATURES.node : []),
-          ...(starterPack ? FEATURES.starterPack : [])
+          ...(upgrade ? FEATURES.analytics : []),
+          ...(c.wuCount > 0 ? FEATURES.srPack : []),
+          ...(isRecert ? FEATURES.recert : [])
         ];
         $("featuresText").innerHTML = feats.map((f) => `<li>${f}</li>`).join("");
 
         const notes = [
           "All prices shown are in EUR, excluding taxes.",
           "Subscription billed annually in advance.",
-          "Complementary service-request packs invoiced upon delivery.",
-          "Standard business-hours support included.",
-          `<a href="https://customercare.evidian.com/space/ITS/384991233/IDaaS%2FOrbion+Terms+of+Services+-+Evidian" target="_blank" class="text-blue-700 underline">View Orbion Terms of Services</a>`
+          "Complementary service‑request packs invoiced upon delivery.",
+          "Standard business‑hours support included.",
+          `<a href=\"https://customercare.evidian.com/space/ITS/384991233/IDaaS%2FOrbion+Terms+of+Services+-+Evidian\" target=\"_blank\" class=\"text-blue-700 underline\">View Orbion Terms of Services</a>`
         ];
         $("notesText").innerHTML = notes.map((n) => `<li>${n}</li>`).join("");
         $("result").classList.remove("hidden");
@@ -325,23 +273,14 @@
       $("costForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const users = parseInt($("numUsers").value, 10) || 0;
+        if (users < 1) return alert("Number of users must be at least 1");
         const pkg = $("packageType").value;
-
-        // Validation based on catalog minimums
-        if (users < 1) return alert("Number of users must be at least 1.");
-        if (pkg === "access" && users < 500) return alert("Orbion Access starts at 500 users.");
         if (pkg === "accessGov" && users < 100) return alert("Orbion Access & Governance starts at 100 users.");
-        if (pkg === "push" && (users < 100 || users > 200000)) return alert("Push Authenticator supports 100 to 200,000 users.");
-        if ($("node").checked && users < 10000) return alert("Additional Node option starts at 10,000 users.");
-
-        const analytics = $("analytics").checked;
-        const recert = $("recert").checked;
-        const node = $("node").checked;
-        const starterPack = $("starterPack").checked;
+        const upgrade = $("upgrade").checked;
+        const isRecert = $("recert").checked;
         const years = parseInt($("contractYears").value, 10) || 1;
-
-        const costs = calculate(users, pkg, analytics, recert, node, starterPack, years);
-        render(users, pkg, analytics, recert, node, starterPack, costs);
+        const costs = calculate(users, pkg, upgrade, years, isRecert);
+        render(users, pkg, upgrade, isRecert, costs);
       });
     });
   </script>
